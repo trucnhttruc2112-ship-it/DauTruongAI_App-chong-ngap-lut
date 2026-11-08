@@ -8,6 +8,44 @@ import { clusterKey } from '../domain/floodProne.js';
 
 const SEVERITY_SCORES = { low: 1, medium: 2, high: 3 };
 
+/**
+ * Chuẩn hóa đối tượng điểm ngập theo đúng hợp đồng dữ liệu Contract (b).
+ * Loại bỏ toàn bộ các trường nội bộ (is_demo, historical_event_count, deviceId, image_sha256, đường dẫn tuyệt đối...).
+ */
+export function formatContractB(p, reports = []) {
+  const images = (reports.length > 0
+    ? reports.map((r) => r.imagePath).filter(Boolean).slice(0, 5)
+    : p.images || []
+  ).map((img) => {
+    if (!img) return null;
+    if (img.startsWith('http://') || img.startsWith('https://')) return img;
+    const clean = img.replace(/\\/g, '/');
+    const uploadIndex = clean.indexOf('/uploads/');
+    return uploadIndex >= 0 ? clean.substring(uploadIndex) : img;
+  }).filter(Boolean);
+
+  return {
+    id: p.id,
+    lat: p.lat,
+    lng: p.lng,
+    address: p.address || null,
+    street: p.street || null,
+    wardId: p.wardId || p.ward_id || null,
+    status: p.status,
+    severity: p.severity,
+    estimatedDepthCm: p.estimatedDepthCm ?? p.estimated_depth_cm ?? null,
+    trustScore: p.trustScore ?? p.trust_score ?? 0,
+    confirmStill: p.confirmStill ?? p.confirm_still ?? 0,
+    confirmEnded: p.confirmEnded ?? p.confirm_ended ?? 0,
+    reportCount: p.reportCount ?? p.report_count ?? 1,
+    images,
+    isFloodProne: Boolean(p.isFloodProne ?? p.is_flood_prone),
+    floodEventCount: p.floodEventCount ?? p.flood_event_count ?? 0,
+    firstReportedAt: p.firstReportedAt || p.first_reported_at || null,
+    lastUpdatedAt: p.lastUpdatedAt || p.last_updated_at || null,
+  };
+}
+
 export class FloodPointQueryService {
   /**
    * Danh sách điểm ngập với các bộ lọc linh hoạt.
@@ -34,7 +72,8 @@ export class FloodPointQueryService {
       }
     }
 
-    return floodPointRepo.list(query);
+    const points = floodPointRepo.list(query);
+    return points.map((p) => formatContractB(p));
   }
 
   /**
@@ -71,9 +110,10 @@ export class FloodPointQueryService {
 
       // 4. Lấy URL ảnh đại diện thumbnailUrl nếu có
       let thumbnailUrl = null;
-      const reports = reportRepo.listByFloodPointId(p.id);
-      if (reports.length > 0 && reports[0].imagePath) {
-        thumbnailUrl = `${ENV.PUBLIC_BASE_URL}${reports[0].imagePath}`;
+      if (p.images && p.images.length > 0) {
+        thumbnailUrl = p.images[0].startsWith('http')
+          ? p.images[0]
+          : `${ENV.PUBLIC_BASE_URL}${p.images[0]}`;
       }
 
       return toGeoJsonPoint(p, {
@@ -99,27 +139,28 @@ export class FloodPointQueryService {
     const point = floodPointRepo.findById(id);
     if (!point) return null;
 
-    // Lấy tối đa 5 ảnh gần nhất (URL tuyệt đối)
+    // Lấy danh sách báo cáo để lấy ảnh và mô tả AI
     const reports = reportRepo.listByFloodPointId(id);
-    const images = reports
-      .map((r) => (r.imagePath ? `${ENV.PUBLIC_BASE_URL}${r.imagePath}` : null))
-      .filter(Boolean)
-      .slice(0, 5);
 
     // Mô tả AI gần nhất
     const latestAiReport = reports.find((r) => r.aiJson && r.aiJson.description);
     const aiDescription = latestAiReport ? latestAiReport.aiJson.description : null;
 
-    // Lịch sử tối đa 10 sự kiện gần nhất
-    const events = eventRepo.listByFloodPointId(id, 10);
+    // Lịch sử tối đa 10 sự kiện gần nhất (loại bỏ trường nội bộ)
+    const rawEvents = eventRepo.listByFloodPointId(id, 10);
+    const events = rawEvents.map((e) => ({
+      id: e.id,
+      startedAt: e.startedAt,
+      endedAt: e.endedAt,
+      endReason: e.endReason,
+    }));
+
     const lastFloodAt = events[0]?.startedAt || point.lastUpdatedAt || point.firstReportedAt;
 
     return {
-      ...point,
-      images,
+      ...formatContractB(point, reports),
       aiDescription,
       events,
-      floodEventCount: point.floodEventCount,
       lastFloodAt,
     };
   }
@@ -199,7 +240,7 @@ export class FloodPointQueryService {
    * Danh sách điểm ngập theo phường kèm tóm tắt và gom nhóm theo đường.
    */
   getWardFloodPoints(wardId) {
-    const points = floodPointRepo.list({ wardId });
+    const points = floodPointRepo.list({ wardId }).map((p) => formatContractB(p));
 
     let activeCount = 0;
     let proneCount = 0;

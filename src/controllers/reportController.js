@@ -9,7 +9,7 @@ export class ReportController {
         options: {
           simulate: req.query.simulate || req.headers['x-ai-simulate'] || req.body?.simulate,
           simulateErrorMidway: req.headers['x-simulate-db-error'] === 'true',
-          aiMode: req.headers['x-ai-mode'] || req.query.aiMode,
+          aiMode: process.env.NODE_ENV === 'test' ? (req.headers['x-ai-mode'] || req.query.aiMode) : undefined,
         },
       });
 

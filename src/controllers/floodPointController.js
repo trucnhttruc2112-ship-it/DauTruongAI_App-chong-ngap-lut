@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { z } from 'zod';
 import { floodPointQueryService } from '../services/floodPointQueryService.js';
 import RULES from '../config/rules.js';
@@ -72,9 +73,17 @@ export class FloodPointController {
 
     try {
       const geoJson = floodPointQueryService.getGeoJson(parseResult.data);
-      // Cache ngắn 10 giây cho GeoJSON theo yêu cầu
+      const bodyStr = JSON.stringify(geoJson);
+      const etag = `W/"${crypto.createHash('md5').update(bodyStr).digest('hex')}"`;
+
+      res.set('ETag', etag);
       res.set('Cache-Control', 'public, max-age=10');
-      return res.status(200).json(geoJson);
+
+      if (req.headers['if-none-match'] === etag) {
+        return res.status(304).end();
+      }
+
+      return res.status(200).type('application/json').send(bodyStr);
     } catch (err) {
       return res.status(500).json({
         ok: false,

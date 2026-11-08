@@ -435,4 +435,33 @@ describe('Prompt 3: API Tiếp nhận Báo cáo Ngập (POST /api/reports)', () 
     const reportInDb = reportRepo.findById(res.body.data.report.id);
     expect(reportInDb.trustFlags).toContain('WARD_ESTIMATED');
   });
+
+  it('15. Header x-ai-mode chỉ có tác dụng khi NODE_ENV=test; ngoài test bị bỏ qua hoàn toàn', async () => {
+    const originalEnv = process.env.NODE_ENV;
+    try {
+      // Giả lập môi trường production (không phải test)
+      process.env.NODE_ENV = 'production';
+
+      const bufIgnored = await sharp({
+        create: { width: 190, height: 190, channels: 3, background: { r: 80, g: 150, b: 220 } },
+      }).jpeg().toBuffer();
+
+      // Gửi x-ai-mode=remote, nhưng vì NODE_ENV=production nên header bị bỏ qua và dùng AI_MODE=mock mặc định
+      const res = await request(app)
+        .post('/api/reports')
+        .set('x-ai-mode', 'remote')
+        .field('lat', 10.9447)
+        .field('lng', 106.8243)
+        .field('accuracyM', 15)
+        .field('capturedAt', new Date().toISOString())
+        .field('deviceId', 'device_env_bypass_test')
+        .attach('image', bufIgnored, 'bypass.jpg');
+
+      expect(res.status).toBe(201);
+      // Không bị ném lỗi AI_NOT_CONFIGURED mà được xử lý bằng mock (active)
+      expect(res.body.data.aiResult.error).toBeNull();
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+    }
+  });
 });

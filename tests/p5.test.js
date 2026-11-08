@@ -147,6 +147,20 @@ describe('Prompt 5: API Đọc Dữ liệu (cho NV1, NV2, NV5)', () => {
       }
     });
 
+    it('Hỗ trợ ETag và trả mã 304 Not Modified khi khớp header If-None-Match', async () => {
+      const resFirst = await request(app).get('/api/flood-points.geojson?status=active');
+      expect(resFirst.status).toBe(200);
+      const etag = resFirst.headers['etag'];
+      expect(etag).toBeDefined();
+
+      const resSecond = await request(app)
+        .get('/api/flood-points.geojson?status=active')
+        .set('If-None-Match', etag);
+
+      expect(resSecond.status).toBe(304);
+      expect(resSecond.text).toBe('');
+    });
+
     it('Xác thực query param sai của GeoJSON trả 400 INVALID_QUERY', async () => {
       const res = await request(app).get('/api/flood-points.geojson?bbox=invalid_bbox_string');
       expect(res.status).toBe(400);
@@ -262,6 +276,65 @@ describe('Prompt 5: API Đọc Dữ liệu (cho NV1, NV2, NV5)', () => {
       expect(res.body.data.summary.proneCount).toBe(0);
       expect(res.body.data.streets).toHaveLength(0);
       expect(res.body.data.points).toHaveLength(0);
+    });
+  });
+
+  describe('6. Rà soát an toàn dữ liệu: Không rò rỉ deviceId, image_sha256 hay đường dẫn tuyệt đối', () => {
+    it('Đảm bảo toàn bộ các endpoint đọc tuân thủ đúng Contract (b) và không rò rỉ trường nhạy cảm', async () => {
+      // 1. Kiểm tra /api/flood-points
+      const resPoints = await request(app).get('/api/flood-points');
+      expect(resPoints.status).toBe(200);
+      for (const p of resPoints.body.data) {
+        expect(p).not.toHaveProperty('deviceId');
+        expect(p).not.toHaveProperty('device_id');
+        expect(p).not.toHaveProperty('image_sha256');
+        expect(p).not.toHaveProperty('imageSha256');
+        expect(p).not.toHaveProperty('isDemo');
+        expect(p).not.toHaveProperty('is_demo');
+        expect(p).not.toHaveProperty('historicalEventCount');
+        expect(p).not.toHaveProperty('historical_event_count');
+      }
+
+      // 2. Kiểm tra /api/flood-points/:id
+      const resDetail = await request(app).get('/api/flood-points/fp_demo_01');
+      expect(resDetail.status).toBe(200);
+      const detail = resDetail.body.data;
+      expect(detail).not.toHaveProperty('deviceId');
+      expect(detail).not.toHaveProperty('device_id');
+      expect(detail).not.toHaveProperty('image_sha256');
+      expect(detail).not.toHaveProperty('isDemo');
+      expect(detail).not.toHaveProperty('is_demo');
+
+      // Kiểm tra images trong detail không chứa đường dẫn tuyệt đối kiểu C:\ hoặc uploads_test_tmp
+      for (const img of detail.images) {
+        expect(img).not.toMatch(/^[A-Za-z]:\\/);
+        expect(img).not.toContain('uploads_test_tmp');
+      }
+
+      // Kiểm tra events trong detail không có isDemo hay trường nội bộ
+      for (const evt of detail.events) {
+        expect(evt).not.toHaveProperty('isDemo');
+        expect(evt).not.toHaveProperty('is_demo');
+      }
+
+      // 3. Kiểm tra /api/flood-points.geojson
+      const resGeo = await request(app).get('/api/flood-points.geojson');
+      expect(resGeo.status).toBe(200);
+      for (const f of resGeo.body.features) {
+        expect(f.properties).not.toHaveProperty('deviceId');
+        expect(f.properties).not.toHaveProperty('device_id');
+        expect(f.properties).not.toHaveProperty('image_sha256');
+        expect(f.properties).not.toHaveProperty('isDemo');
+      }
+
+      // 4. Kiểm tra /api/wards/long-binh/flood-points
+      const resWard = await request(app).get('/api/wards/long-binh/flood-points');
+      expect(resWard.status).toBe(200);
+      for (const p of resWard.body.data.points) {
+        expect(p).not.toHaveProperty('deviceId');
+        expect(p).not.toHaveProperty('image_sha256');
+        expect(p).not.toHaveProperty('isDemo');
+      }
     });
   });
 });

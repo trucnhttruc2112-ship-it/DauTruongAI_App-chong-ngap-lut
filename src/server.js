@@ -10,6 +10,8 @@ import floodPointRoutes from './routes/floodPointRoutes.js';
 import wardRoutes from './routes/wardRoutes.js';
 import { floodPointController } from './controllers/floodPointController.js';
 import { ipLimiter } from './middleware/rateLimiter.js';
+import { runExpireOnce } from './services/expirationService.js';
+import RULES from './config/rules.js';
 
 // Kiểm tra tính hợp lệ của cấu hình hệ thống
 validateEnvironmentConfig(ENV);
@@ -85,6 +87,21 @@ app.get('/api/health', (req, res) => {
     });
   }
 });
+
+// Khởi chạy background job quét hết hạn tự động (Chỉ chạy ngoài môi trường test)
+if (process.env.NODE_ENV !== 'test') {
+  const expireIntervalMs = (RULES.EXPIRE_JOB_INTERVAL_MINUTES || 5) * 60 * 1000;
+  setInterval(() => {
+    try {
+      const res = runExpireOnce(new Date());
+      if (res.expiredCount > 0) {
+        console.log(`⏱️ [Expire Job] Đã tự động hết hạn ${res.expiredCount} điểm ngập:`, res.expiredPointIds);
+      }
+    } catch (err) {
+      console.error('Lỗi khi chạy background job quét hết hạn điểm ngập:', err.message);
+    }
+  }, expireIntervalMs);
+}
 
 // Khởi chạy server nếu được gọi trực tiếp
 if (process.argv[1] && (process.argv[1].endsWith('server.js') || process.argv[1].endsWith('server'))) {

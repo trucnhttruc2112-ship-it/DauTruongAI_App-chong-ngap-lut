@@ -261,7 +261,51 @@ Mọi phản hồi JSON từ hệ thống đều tuân thủ cấu trúc đồng
 
 ---
 
-### 2.5. Danh sách Tuyến đường / Khu vực hay ngập (Flood-prone)
+### 2.5. Xác nhận Điểm ngập ('still' / 'ended')
+- **Endpoint:** `POST /api/flood-points/:id/confirm`
+- **Dành cho:** NV2 (Nút bấm người dân xác nhận trên điện thoại)
+- **Content-Type:** `application/json`
+
+#### Tham số Request Body (JSON):
+| Tên trường | Kiểu | Bắt buộc | Ghi chú |
+|---|---|---|---|
+| `type` | Enum | Có | `'still'` (vẫn còn ngập) hoặc `'ended'` (đã hết ngập). |
+| `deviceId` | String | Có | Mã thiết bị của người xác nhận. |
+| `lat` | Number | Có | Vĩ độ của người xác nhận (phải cách điểm ngập $\le 300\text{m}$). |
+| `lng` | Number | Có | Kinh độ của người xác nhận. |
+
+#### Quy tắc nghiệp vụ:
+- Điểm ngập phải đang ở trạng thái `active` hoặc `pending`.
+- Khoảng cách xác nhận phải $\le 300\text{m}$ (`CONFIRM_MAX_DISTANCE_M`).
+- Mỗi `deviceId` chỉ được gửi 1 lần cho mỗi loại xác nhận trên cùng 1 điểm (trả 409 `DUPLICATE_CONFIRMATION` nếu lặp lại).
+- Khi có đủ 2 thiết bị khác nhau báo `'ended'`, điểm ngập sẽ tự động chuyển sang `'resolved'`, đóng sự kiện ngập mở (`flood_event`) và tăng số lần ngập (`floodEventCount`).
+
+#### Ví dụ phản hồi (HTTP 200 OK):
+```json
+{
+  "ok": true,
+  "data": {
+    "floodPoint": {
+      "id": "fp_demo_01",
+      "lat": 10.9447,
+      "lng": 106.8243,
+      "status": "resolved",
+      "confirmStill": 4,
+      "confirmEnded": 2,
+      "reportCount": 5,
+      "isFloodProne": true,
+      "floodEventCount": 7,
+      "lastUpdatedAt": "2026-11-08T08:00:00.000Z"
+    },
+    "resolved": true,
+    "message": "Điểm ngập đã được xác nhận hết ngập từ nhiều người dân và chuyển sang trạng thái đã xử lý."
+  }
+}
+```
+
+---
+
+### 2.6. Danh sách Tuyến đường / Khu vực hay ngập (Flood-prone)
 - **Endpoint:** `GET /api/flood-prone`
 - **Dành cho:** NV5 (Đối chiếu với dữ liệu đo mưa và dự báo ngập lụt), NV1 (Lớp bản đồ cảnh báo)
 - **Cơ chế:** Gom cụm theo tên đường chuẩn hóa hoặc lưới ~100 mét. Sắp xếp giảm dần theo tổng số sự kiện ngập (`eventCount`).
