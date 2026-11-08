@@ -105,6 +105,9 @@ export class ConfirmationService {
         reportCount: point.reportCount || 1,
       });
 
+      const newConfirmStill = type === 'still' ? (point.confirmStill || 0) + 1 : (point.confirmStill || 0);
+      const newConfirmEnded = Math.max(point.confirmEnded || 0, lifecycleRes.confirmEnded);
+
       if (isResolved) {
         // Đủ 2 thiết bị khác nhau báo 'ended' -> Chuyển sang resolved
         const openEvent = eventRepo.findOpenEvent(floodPointId);
@@ -120,8 +123,8 @@ export class ConfirmationService {
 
         floodPointRepo.update(floodPointId, {
           status: 'resolved',
-          confirmStill: lifecycleRes.confirmStill,
-          confirmEnded: lifecycleRes.confirmEnded,
+          confirmStill: newConfirmStill,
+          confirmEnded: newConfirmEnded,
           lastConfirmedAt: lifecycleRes.lastConfirmedAt || point.lastConfirmedAt,
           lastUpdatedAt: nowDate.toISOString(),
           floodEventCount: newFloodEventCount,
@@ -131,8 +134,8 @@ export class ConfirmationService {
       } else {
         // Chưa đủ điều kiện resolved -> Cập nhật số đếm và mốc thời gian
         floodPointRepo.update(floodPointId, {
-          confirmStill: lifecycleRes.confirmStill,
-          confirmEnded: lifecycleRes.confirmEnded,
+          confirmStill: newConfirmStill,
+          confirmEnded: newConfirmEnded,
           lastConfirmedAt: lifecycleRes.lastConfirmedAt || point.lastConfirmedAt,
           lastUpdatedAt: nowDate.toISOString(),
           trustScore: updatedTrustScore,

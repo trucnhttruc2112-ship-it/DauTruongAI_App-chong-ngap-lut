@@ -9,6 +9,7 @@
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed.js",
     "seed:clear": "node scripts/seedClear.js",
+    "bench": "node scripts/benchmark.js",
     "test": "vitest run"
   },
   "dependencies": {

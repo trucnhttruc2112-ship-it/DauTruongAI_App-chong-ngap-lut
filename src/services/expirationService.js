@@ -34,7 +34,7 @@ export function runExpireOnce(now = new Date()) {
         // Đóng sự kiện ngập mở nếu có
         const openEvent = eventRepo.findOpenEvent(point.id);
         if (openEvent) {
-          eventRepo.closeEvent(openEvent.id, nowDate.toISOString(), 'expired');
+          eventRepo.closeEvent(openEvent.id, nowDate.toISOString(), 'auto_expired');
         }
 
         const newFloodEventCount = (point.floodEventCount || 0) + 1;

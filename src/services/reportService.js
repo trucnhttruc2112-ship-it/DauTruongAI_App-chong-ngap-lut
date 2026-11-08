@@ -121,7 +121,7 @@ export class ReportService {
           {
             filename: file.originalname,
             note: validated.note,
-            simulate: options.simulate || body.simulate,
+            simulate: options.simulate || (process.env.NODE_ENV === 'test' ? body.simulate : undefined),
           },
           options.aiMode || ENV.AI_MODE
         );

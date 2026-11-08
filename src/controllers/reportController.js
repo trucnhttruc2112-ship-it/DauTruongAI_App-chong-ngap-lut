@@ -3,13 +3,14 @@ import { reportService } from '../services/reportService.js';
 export class ReportController {
   async createReport(req, res) {
     try {
+      const isTestEnv = process.env.NODE_ENV === 'test';
       const result = await reportService.processReport({
         file: req.file,
         body: req.body,
         options: {
-          simulate: req.query.simulate || req.headers['x-ai-simulate'] || req.body?.simulate,
-          simulateErrorMidway: req.headers['x-simulate-db-error'] === 'true',
-          aiMode: process.env.NODE_ENV === 'test' ? (req.headers['x-ai-mode'] || req.query.aiMode) : undefined,
+          simulate: isTestEnv ? (req.query.simulate || req.headers['x-ai-simulate'] || req.body?.simulate) : undefined,
+          simulateErrorMidway: isTestEnv ? (req.headers['x-simulate-db-error'] === 'true') : false,
+          aiMode: isTestEnv ? (req.headers['x-ai-mode'] || req.query.aiMode) : undefined,
         },
       });
 

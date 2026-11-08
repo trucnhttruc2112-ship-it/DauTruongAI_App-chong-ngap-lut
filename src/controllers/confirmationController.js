@@ -25,10 +25,14 @@ export class ConfirmationController {
     }
 
     try {
+      const isTestEnv = process.env.NODE_ENV === 'test';
+      const fakeNowHeader = isTestEnv ? req.headers['x-fake-now'] : undefined;
+      const parsedNow = fakeNowHeader ? new Date(fakeNowHeader) : new Date();
+
       const result = await confirmationService.confirmPoint({
         floodPointId: req.params.id,
         ...parseResult.data,
-        now: req.headers['x-fake-now'] ? new Date(req.headers['x-fake-now']) : new Date(),
+        now: parsedNow,
       });
 
       return res.status(200).json(result);
