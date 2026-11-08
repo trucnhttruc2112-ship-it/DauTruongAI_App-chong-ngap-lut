@@ -3,10 +3,16 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { ENV } from './config/env.js';
+import { ENV, validateEnvironmentConfig } from './config/env.js';
 import floodPointRepo from './repositories/floodPointRepo.js';
 import reportRoutes from './routes/reportRoutes.js';
+import floodPointRoutes from './routes/floodPointRoutes.js';
+import wardRoutes from './routes/wardRoutes.js';
+import { floodPointController } from './controllers/floodPointController.js';
 import { ipLimiter } from './middleware/rateLimiter.js';
+
+// Kiểm tra tính hợp lệ của cấu hình hệ thống
+validateEnvironmentConfig(ENV);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,6 +48,18 @@ app.use('/api', ipLimiter);
 
 // Đăng ký các Route API
 app.use('/api/reports', reportRoutes);
+
+// Endpoint GeoJSON (phục vụ Leaflet NV1)
+app.get('/api/flood-points.geojson', (req, res) => floodPointController.getGeoJson(req, res));
+
+// Endpoint danh sách và chi tiết điểm ngập
+app.use('/api/flood-points', floodPointRoutes);
+
+// Endpoint danh sách các tuyến đường hay ngập (phục vụ NV1, NV5)
+app.get('/api/flood-prone', (req, res) => floodPointController.getFloodProne(req, res));
+
+// Endpoint dữ liệu điểm ngập theo phường (phục vụ NV2)
+app.use('/api/wards', wardRoutes);
 
 // Endpoint kiểm tra sức khỏe hệ thống (Health Check)
 app.get('/api/health', (req, res) => {

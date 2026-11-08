@@ -23,40 +23,29 @@ import { ENV } from '../config/env.js';
  * @returns {Promise<{ isFlood: boolean | null, confidence: number, severity: 'low' | 'medium' | 'high', estimatedDepthCm: number | null, description: string, reason: string, error: string | null }>}
  */
 export async function analyzeImage(imageBuffer, context = {}, mode = ENV.AI_MODE) {
-  try {
-    const activeMode = mode || 'mock';
+  const activeMode = mode || 'mock';
 
-    if (activeMode === 'mock') {
-      return runMockAnalyzer(context);
-    }
-
-    if (activeMode === 'local') {
-      // TODO: Tích hợp mô hình On-Premise/Local khi có triển khai thực tế
-      console.warn('⚠️ [AI Analyzer] Chế độ local chưa được kích hoạt, chuyển sang chế độ mock.');
-      return runMockAnalyzer(context);
-    }
-
-    if (activeMode === 'remote') {
-      // TODO: Tích hợp API Gemini/Remote từ dịch vụ do NV3 cung cấp
-      // Timeout 15s, retry 1 lần theo thỏa thuận.
-      // Không tự ý gọi API key bên ngoài theo Rule 6 của AGENTS.md.
-      console.warn('⚠️ [AI Analyzer] Chế độ remote chờ NV3 hoàn tất, chuyển sang chế độ mock.');
-      return runMockAnalyzer(context);
-    }
-
+  if (activeMode === 'mock') {
     return runMockAnalyzer(context);
-  } catch (err) {
-    // Mọi ngoại lệ bất ngờ đều phải bắt và trả định dạng lỗi an toàn
-    return {
-      isFlood: null,
-      confidence: 0,
-      severity: 'low',
-      estimatedDepthCm: null,
-      description: '',
-      reason: '',
-      error: `Lỗi phân tích AI: ${err.message}`,
-    };
   }
+
+  if (activeMode === 'local') {
+    console.warn('⚠️ [AI Analyzer] Chế độ AI local chưa được cài đặt!');
+    const err = new Error('Chế độ AI local chưa được cài đặt trên hệ thống');
+    err.code = 'AI_NOT_CONFIGURED';
+    throw err;
+  }
+
+  if (activeMode === 'remote') {
+    console.warn('⚠️ [AI Analyzer] Chế độ AI remote chưa được cài đặt (chờ dịch vụ từ NV3)!');
+    const err = new Error('Chế độ AI remote chưa được cài đặt (chờ NV3)');
+    err.code = 'AI_NOT_CONFIGURED';
+    throw err;
+  }
+
+  const err = new Error(`Chế độ AI không hợp lệ: ${activeMode}`);
+  err.code = 'AI_NOT_CONFIGURED';
+  throw err;
 }
 
 /**

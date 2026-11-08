@@ -78,7 +78,7 @@ export function isInsideDongNai(lat, lng, bbox = RULES.DONG_NAI_BBOX) {
  * @param {object} floodPoint Đối tượng điểm ngập trong CSDL
  * @returns {object} GeoJSON Feature
  */
-export function toGeoJsonPoint(floodPoint) {
+export function toGeoJsonPoint(floodPoint, extraProperties = {}) {
   if (!floodPoint || !isValidCoordinate(floodPoint.lat, floodPoint.lng)) {
     throw new Error('Dữ liệu điểm ngập không có tọa độ hợp lệ để tạo GeoJSON');
   }
@@ -107,6 +107,7 @@ export function toGeoJsonPoint(floodPoint) {
       firstReportedAt: floodPoint.firstReportedAt || floodPoint.first_reported_at || null,
       lastUpdatedAt: floodPoint.lastUpdatedAt || floodPoint.last_updated_at || null,
       images: floodPoint.images || [],
+      ...extraProperties,
     },
   };
 }

@@ -21,4 +21,10 @@ export const ENV = Object.freeze({
     .filter(Boolean),
 });
 
+export function validateEnvironmentConfig(env = ENV) {
+  if (env.DATA_MODE === 'real' && env.AI_MODE === 'mock') {
+    throw new Error('Lỗi cấu hình: Chế độ dữ liệu thật (DATA_MODE=real) cấm sử dụng AI_MODE=mock.');
+  }
+}
+
 export default ENV;

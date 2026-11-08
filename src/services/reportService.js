@@ -114,11 +114,29 @@ export class ReportService {
 
     try {
       // 6. Phân tích AI
-      const aiResult = await analyzeImage(file.buffer, {
-        filename: file.originalname,
-        note: validated.note,
-        simulate: options.simulate || body.simulate,
-      }, ENV.AI_MODE);
+      let aiResult;
+      try {
+        aiResult = await analyzeImage(
+          file.buffer,
+          {
+            filename: file.originalname,
+            note: validated.note,
+            simulate: options.simulate || body.simulate,
+          },
+          options.aiMode || ENV.AI_MODE
+        );
+      } catch (aiErr) {
+        // Xử lý lỗi AI_NOT_CONFIGURED hoặc lỗi gọi AI như "AI lỗi" -> isFlood: null, điểm ngập pending
+        aiResult = {
+          isFlood: null,
+          confidence: 0,
+          severity: 'low',
+          estimatedDepthCm: null,
+          description: '',
+          reason: aiErr.message,
+          error: aiErr.code || 'AI_ERROR',
+        };
+      }
 
       // Quyết định trạng thái ban đầu ('active' | 'pending' | 'rejected')
       const initialStatus = decideInitialStatus(aiResult);
@@ -127,8 +145,14 @@ export class ReportService {
       const activePendingCandidates = floodPointRepo.list({ status: ['active', 'pending'] });
       const mergeTarget = findMergeTarget({ lat: validated.lat, lng: validated.lng }, activePendingCandidates, nowDate);
 
-      // Reverse Geocoding (không chặn)
+      // Reverse Geocoding (ước lượng phường gần nhất nếu chưa có ranh giới polygon)
       const geoInfo = await geocodeService.reverse(validated.lat, validated.lng);
+
+      // Thu thập cờ độ tin cậy bao gồm cờ ước lượng phường (WARD_ESTIMATED)
+      const finalReportFlags = [...contextResult.flags];
+      if (geoInfo.isWardEstimated) {
+        finalReportFlags.push('WARD_ESTIMATED');
+      }
 
       // 8. Thực hiện giao dịch cơ sở dữ liệu (Transaction)
       const db = getDb();
@@ -174,7 +198,7 @@ export class ReportService {
             imagePath: savedImage.relativeUrl,
             imageSha256,
             aiJson: aiResult,
-            trustFlags: contextResult.flags,
+            trustFlags: finalReportFlags,
             isDemo: 0,
           });
 
@@ -240,7 +264,7 @@ export class ReportService {
             imagePath: savedImage.relativeUrl,
             imageSha256,
             aiJson: aiResult,
-            trustFlags: contextResult.flags,
+            trustFlags: finalReportFlags,
             isDemo: 0,
           });
 
@@ -295,7 +319,7 @@ export class ReportService {
           imagePath: savedImage.relativeUrl,
           imageSha256,
           aiJson: aiResult,
-          trustFlags: contextResult.flags,
+          trustFlags: finalReportFlags,
           isDemo: 0,
         });
 

@@ -1,9 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import { haversineMeters, isValidCoordinate } from '../domain/geo.js';
 
 /**
- * Dịch vụ chuyển đổi tọa độ địa lý sang địa chỉ hành chính (Reverse Geocoding).
- * Bọc trong try/catch, không làm chặn luồng xử lý báo cáo chính nếu gặp sự cố.
+ * Dịch vụ chuyển đổi tọa độ địa lý sang thông tin hành chính (Reverse Geocoding).
+ * Khi chưa có dữ liệu polygon ranh giới chính xác từ NV6, dịch vụ này sẽ
+ * ước lượng gán wardId theo phường gần nhất dựa trên khoảng cách Haversine.
  */
 class GeocodeService {
   constructor() {
@@ -28,25 +30,69 @@ class GeocodeService {
   }
 
   /**
-   * Suy diễn sơ bộ địa chỉ, tên đường và wardId từ tọa độ.
-   * Giai đoạn hiện tại trả về cấu trúc mặc định an toàn.
-   * TODO: NV6/NV2 cung cấp API reverse geocoding chi tiết hoặc geojson ranh giới phường.
+   * Ước lượng phường/xã gần nhất từ tọa độ theo khoảng cách Haversine.
+   * Ghi chú: "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6".
    *
    * @param {number} lat
    * @param {number} lng
-   * @returns {Promise<{ address: string | null, street: string | null, wardId: string | null }>}
+   * @returns {Promise<{ address: string | null, street: string | null, wardId: string | null, isWardEstimated: boolean, wardEstimateNote: string | null, distanceToWardCenterM: number | null }>}
    */
   async reverse(lat, lng) {
-    try {
-      // Mặc định tạm thời
+    if (!isValidCoordinate(lat, lng)) {
       return {
         address: null,
         street: null,
         wardId: null,
+        isWardEstimated: false,
+        wardEstimateNote: null,
+        distanceToWardCenterM: null,
       };
-    } catch {
-      return { address: null, street: null, wardId: null };
     }
+
+    const wards = this._loadDemoWards();
+    if (!wards || wards.length === 0) {
+      return {
+        address: null,
+        street: null,
+        wardId: null,
+        isWardEstimated: false,
+        wardEstimateNote: null,
+        distanceToWardCenterM: null,
+      };
+    }
+
+    let nearestWard = null;
+    let minDistance = Infinity;
+
+    for (const ward of wards) {
+      if (typeof ward.lat === 'number' && typeof ward.lng === 'number') {
+        const dist = haversineMeters({ lat, lng }, { lat: ward.lat, lng: ward.lng });
+        if (dist < minDistance) {
+          minDistance = dist;
+          nearestWard = ward;
+        }
+      }
+    }
+
+    if (!nearestWard) {
+      return {
+        address: null,
+        street: null,
+        wardId: null,
+        isWardEstimated: false,
+        wardEstimateNote: null,
+        distanceToWardCenterM: null,
+      };
+    }
+
+    return {
+      address: null,
+      street: null,
+      wardId: nearestWard.id,
+      isWardEstimated: true,
+      wardEstimateNote: 'TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6',
+      distanceToWardCenterM: Math.round(minDistance),
+    };
   }
 }
 
