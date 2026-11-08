@@ -13,11 +13,11 @@ export class ReportRepository {
     const stmt = this.db.prepare(`
       INSERT INTO reports (
         id, flood_point_id, device_id, lat, lng, accuracy_m,
-        captured_at, created_at, image_path, image_sha256,
+        captured_at, created_at, image_path, image_sha256, image_dhash,
         ai_json, trust_flags, is_demo
       ) VALUES (
         @id, @floodPointId, @deviceId, @lat, @lng, @accuracyM,
-        @capturedAt, @createdAt, @imagePath, @imageSha256,
+        @capturedAt, @createdAt, @imagePath, @imageSha256, @imageDhash,
         @aiJson, @trustFlags, @isDemo
       )
     `);
@@ -33,6 +33,7 @@ export class ReportRepository {
       createdAt: report.createdAt || report.created_at || new Date().toISOString(),
       imagePath: report.imagePath || report.image_path || null,
       imageSha256: report.imageSha256 || report.image_sha256 || null,
+      imageDhash: report.imageDhash || report.image_dhash || null,
       aiJson: typeof report.aiJson === 'object' ? JSON.stringify(report.aiJson) : (report.aiJson || null),
       trustFlags: Array.isArray(report.trustFlags) ? JSON.stringify(report.trustFlags) : (report.trustFlags || null),
       isDemo: report.isDemo ?? report.is_demo ?? 0,
@@ -73,6 +74,16 @@ export class ReportRepository {
     return row ? row.count : 0;
   }
 
+  listRecentReports(sinceIso) {
+    const stmt = this.db.prepare(`
+      SELECT * FROM reports
+      WHERE created_at >= ? AND image_dhash IS NOT NULL
+      ORDER BY created_at DESC
+    `);
+    const rows = stmt.all(sinceIso);
+    return rows.map((r) => this._mapRow(r));
+  }
+
   getDemoImagePaths() {
     const stmt = this.db.prepare(`
       SELECT image_path FROM reports WHERE is_demo = 1 AND image_path IS NOT NULL
@@ -108,6 +119,7 @@ export class ReportRepository {
       createdAt: row.created_at,
       imagePath: row.image_path,
       imageSha256: row.image_sha256,
+      imageDhash: row.image_dhash || null,
       aiJson,
       trustFlags,
       isDemo: Boolean(row.is_demo),

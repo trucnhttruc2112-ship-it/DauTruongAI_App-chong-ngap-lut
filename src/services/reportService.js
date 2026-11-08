@@ -11,13 +11,13 @@ import { validateReportContext } from '../domain/reportValidator.js';
 import { findMergeTarget } from '../domain/dedupe.js';
 import { decideInitialStatus, promotePendingToActive } from '../domain/lifecycle.js';
 import { computeTrustScore } from '../domain/trustScore.js';
-import { sha256Hex } from '../domain/imageHash.js';
+import { sha256Hex, computeDHash, hammingDistance } from '../domain/imageHash.js';
 import { validateImageMagicBytes, compressAndSaveImage } from '../utils/imageUtils.js';
 import { analyzeImage } from './aiAnalyzer.js';
 import { geocodeService } from './geocodeService.js';
 
 // Schema xác thực đầu vào bằng Zod
-const ReportPayloadSchema = z.object({
+export const ReportPayloadSchema = z.object({
   lat: z.coerce.number({ invalid_type_error: 'Vĩ độ (lat) phải là số' }),
   lng: z.coerce.number({ invalid_type_error: 'Kinh độ (lng) phải là số' }),
   accuracyM: z.coerce.number({ invalid_type_error: 'Sai số GPS (accuracyM) phải là số' }),
@@ -70,11 +70,10 @@ export class ReportService {
     // 2. Validate tham số đầu vào bằng Zod
     const parseResult = ReportPayloadSchema.safeParse(body);
     if (!parseResult.success) {
-      const firstIssue = parseResult.error.issues[0];
-      const err = new Error(firstIssue ? firstIssue.message : 'Dữ liệu báo cáo không hợp lệ');
-      err.code = 'VALIDATION_ERROR';
+      console.warn('⚠️ [ReportService] Dữ liệu đầu vào không hợp lệ (Zod):', parseResult.error.issues);
+      const err = new Error('Dữ liệu gửi đi chưa hợp lệ. Vui lòng thử lại; nếu lỗi lặp lại hãy báo cho quản trị viên.');
+      err.code = 'INVALID_REQUEST';
       err.status = 400;
-      err.details = parseResult.error.issues;
       throw err;
     }
     const validated = parseResult.data;
@@ -106,6 +105,29 @@ export class ReportService {
       err.code = 'DUPLICATE_IMAGE';
       err.status = 409;
       throw err;
+    }
+
+    // 4b. Tính mã băm tri giác dHash và kiểm tra ảnh gần trùng trong 24 giờ
+    const imageDhash = await computeDHash(file.buffer);
+    const windowHours = RULES.SIMILAR_IMAGE_WINDOW_HOURS || 24;
+    const maxHamming = RULES.SIMILAR_IMAGE_MAX_HAMMING ?? 5;
+    const sinceIso = new Date(nowDate.getTime() - windowHours * 3600 * 1000).toISOString();
+    const recentReports = reportRepo.listRecentReports(sinceIso);
+
+    let isSimilarToOther = false;
+    for (const recent of recentReports) {
+      if (!recent.imageDhash) continue;
+      const dist = hammingDistance(imageDhash, recent.imageDhash);
+      if (dist <= maxHamming) {
+        if (recent.deviceId === validated.deviceId) {
+          const err = new Error('Ảnh này giống ảnh bạn vừa gửi.');
+          err.code = 'DUPLICATE_IMAGE';
+          err.status = 409;
+          throw err;
+        } else {
+          isSimilarToOther = true;
+        }
+      }
     }
 
     // 5. Nén và ghi ảnh vào đĩa (Sharp xóa EXIF, resize max 1280, nén JPEG q80)
@@ -148,10 +170,13 @@ export class ReportService {
       // Reverse Geocoding (ước lượng phường gần nhất nếu chưa có ranh giới polygon)
       const geoInfo = await geocodeService.reverse(validated.lat, validated.lng);
 
-      // Thu thập cờ độ tin cậy bao gồm cờ ước lượng phường (WARD_ESTIMATED)
+      // Thu thập cờ độ tin cậy bao gồm cờ ước lượng phường (WARD_ESTIMATED) và ảnh tương tự (SIMILAR_IMAGE)
       const finalReportFlags = [...contextResult.flags];
       if (geoInfo.isWardEstimated) {
         finalReportFlags.push('WARD_ESTIMATED');
+      }
+      if (isSimilarToOther) {
+        finalReportFlags.push('SIMILAR_IMAGE');
       }
 
       // 8. Thực hiện giao dịch cơ sở dữ liệu (Transaction)
@@ -197,6 +222,7 @@ export class ReportService {
             createdAt: nowDate.toISOString(),
             imagePath: savedImage.relativeUrl,
             imageSha256,
+            imageDhash,
             aiJson: aiResult,
             trustFlags: finalReportFlags,
             isDemo: 0,
@@ -224,11 +250,12 @@ export class ReportService {
             }
           }
 
-          // Tính lại trustScore
+          // Tính lại trustScore (nếu ảnh tương tự thì không cộng điểm nguồn ảnh)
+          const effectiveSource = isSimilarToOther ? 'manual-pin' : validated.source;
           const updatedTrustScore = computeTrustScore({
             aiConfidence: aiResult.confidence,
             gpsAccuracyM: validated.accuracyM,
-            source: validated.source,
+            source: effectiveSource,
             confirmStill: mergeTarget.confirmStill,
             confirmEnded: mergeTarget.confirmEnded,
             reportCount: newReportCount,
@@ -263,6 +290,7 @@ export class ReportService {
             createdAt: nowDate.toISOString(),
             imagePath: savedImage.relativeUrl,
             imageSha256,
+            imageDhash,
             aiJson: aiResult,
             trustFlags: finalReportFlags,
             isDemo: 0,
@@ -277,10 +305,11 @@ export class ReportService {
         isMerged = false;
         const newPointId = `fp_${crypto.randomUUID()}`;
 
+        const effectiveSource = isSimilarToOther ? 'manual-pin' : validated.source;
         const trustScore = computeTrustScore({
           aiConfidence: aiResult.confidence,
           gpsAccuracyM: validated.accuracyM,
-          source: validated.source,
+          source: effectiveSource,
           confirmStill: 0,
           confirmEnded: 0,
           reportCount: 1,
@@ -318,6 +347,7 @@ export class ReportService {
           createdAt: nowDate.toISOString(),
           imagePath: savedImage.relativeUrl,
           imageSha256,
+          imageDhash,
           aiJson: aiResult,
           trustFlags: finalReportFlags,
           isDemo: 0,
@@ -349,6 +379,7 @@ export class ReportService {
           report: { id: finalReportId },
           merged: isMerged,
           aiResult,
+          aiMode: options.aiMode || ENV.AI_MODE,
           message: responseMessage,
         },
       };

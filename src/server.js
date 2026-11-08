@@ -21,23 +21,62 @@ const __dirname = path.dirname(__filename);
 
 export const app = express();
 
+// Thiết lập trust proxy để đọc đúng X-Forwarded-Host khi chạy qua tunnel/reverse proxy
+app.set('trust proxy', 1);
+
 // Đảm bảo thư mục upload tồn tại
 const uploadFullPath = path.resolve(ENV.UPLOAD_DIR);
 if (!fs.existsSync(uploadFullPath)) {
   fs.mkdirSync(uploadFullPath, { recursive: true });
 }
 
-// Cấu hình Middleware
-app.use(cors({
-  origin: (origin, callback) => {
-    // Cho phép gọi không có origin (curl, mobile app, postman) hoặc nằm trong danh sách trắng
-    if (!origin || ENV.ALLOWED_ORIGINS.includes(origin) || origin.includes('localhost') || origin.includes('127.0.0.1')) {
-      return callback(null, true);
+// Cấu hình Middleware CORS
+app.use(
+  cors((req, callback) => {
+    const origin = req.header('Origin');
+
+    // (a) Không có header Origin (curl, mobile app, postman, direct browser navigation)
+    if (!origin) {
+      return callback(null, { origin: true, credentials: true });
     }
-    return callback(new Error('Chặn bởi cấu hình CORS'));
-  },
-  credentials: true,
-}));
+
+    // (b) Origin nằm trong danh sách trắng ALLOWED_ORIGINS hoặc localhost / 127.0.0.1
+    if (
+      ENV.ALLOWED_ORIGINS.includes(origin) ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1')
+    ) {
+      return callback(null, { origin: true, credentials: true });
+    }
+
+    // (c) Host của Origin trùng với host của yêu cầu (Host / X-Forwarded-Host khi đi qua tunnel)
+    try {
+      const originUrl = new URL(origin);
+      const originHost = (originUrl.host || '').replace(/:(80|443)$/, '');
+
+      const rawForwardedHost = req.headers['x-forwarded-host'];
+      const forwardedHost = Array.isArray(rawForwardedHost)
+        ? rawForwardedHost[0]?.split(',')[0]?.trim()
+        : typeof rawForwardedHost === 'string'
+        ? rawForwardedHost.split(',')[0]?.trim()
+        : null;
+
+      const reqHost = (forwardedHost || req.get('host') || req.headers.host || '').replace(/:(80|443)$/, '');
+
+      if (reqHost && originHost === reqHost) {
+        return callback(null, { origin: true, credentials: true });
+      }
+    } catch {
+      // URL origin không hợp lệ
+    }
+
+    // Origin khác nguồn và không nằm trong danh sách được phép
+    const corsError = new Error('Chặn bởi cấu hình CORS');
+    corsError.name = 'CorsError';
+    corsError.status = 403;
+    return callback(corsError);
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -87,6 +126,26 @@ app.get('/api/health', (req, res) => {
       },
     });
   }
+});
+
+// Middleware xử lý lỗi tập trung (bắt lỗi CORS trả về 403 JSON và các lỗi khác)
+app.use((err, req, res, next) => {
+  if (err.name === 'CorsError' || err.message?.includes('CORS') || err.status === 403) {
+    return res.status(403).json({
+      ok: false,
+      error: {
+        code: 'CORS_BLOCKED',
+        message: err.message || 'Chặn bởi cấu hình CORS',
+      },
+    });
+  }
+  return res.status(err.status || 500).json({
+    ok: false,
+    error: {
+      code: err.code || 'INTERNAL_SERVER_ERROR',
+      message: err.message || 'Lỗi máy chủ nội bộ',
+    },
+  });
 });
 
 // Khởi chạy background job quét hết hạn tự động (Chỉ chạy ngoài môi trường test)

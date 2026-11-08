@@ -9,6 +9,9 @@ import { generateUuid, getDeviceId } from '../public/nv4/deviceId.js';
 import { getFriendlyErrorMessage } from '../public/nv4/errorMessages.js';
 import { formatGeoError } from '../public/nv4/geo.js';
 import { calculateScaledDimensions, checkSecureContext } from '../public/nv4/camera.js';
+import { determineReportSource, buildReportPayload, formatStatusVietnamese } from '../public/nv4/reportFlow.js';
+import { ReportPayloadSchema } from '../src/services/reportService.js';
+import { formatContractB } from '../src/services/floodPointQueryService.js';
 
 describe('Prompt 6 - Frontend Pure Logic & Static Server Serving', () => {
   let db;
@@ -161,6 +164,170 @@ describe('Prompt 6 - Frontend Pure Logic & Static Server Serving', () => {
       const apiRes = await request(app).get('/api/health');
       expect(apiRes.status).toBe(200);
       expect(apiRes.body.ok).toBe(true);
+    });
+  });
+
+  describe('6. Cấu hình CORS & Truy cập qua Tunnel', () => {
+    it('(a) Origin cùng host với yêu cầu (Host / X-Forwarded-Host) -> được phép', async () => {
+      // Test cùng Host thông thường
+      const resHost = await request(app)
+        .get('/api/health')
+        .set('Host', 'demo-tunnel.trycloudflare.com')
+        .set('Origin', 'https://demo-tunnel.trycloudflare.com');
+
+      expect(resHost.status).toBe(200);
+      expect(resHost.headers['access-control-allow-origin']).toBe('https://demo-tunnel.trycloudflare.com');
+
+      // Test qua proxy với X-Forwarded-Host
+      const resForwarded = await request(app)
+        .get('/api/health')
+        .set('X-Forwarded-Host', 'tunnel.myapp.net')
+        .set('Origin', 'https://tunnel.myapp.net');
+
+      expect(resForwarded.status).toBe(200);
+      expect(resForwarded.headers['access-control-allow-origin']).toBe('https://tunnel.myapp.net');
+    });
+
+    it('(b) Origin lạ (khác nguồn và không nằm trong danh sách) -> 403 CORS_BLOCKED', async () => {
+      const res = await request(app)
+        .get('/api/health')
+        .set('Origin', 'https://malicious-site.example');
+
+      expect(res.status).toBe(403);
+      expect(res.body.ok).toBe(false);
+      expect(res.body.error).toBeDefined();
+      expect(res.body.error.code).toBe('CORS_BLOCKED');
+      expect(res.body.error.message).toContain('CORS');
+    });
+
+    it('(c) Yêu cầu không có Origin (curl, server-to-server) -> được phép', async () => {
+      const res = await request(app).get('/api/health');
+      expect(res.status).toBe(200);
+      expect(res.body.ok).toBe(true);
+    });
+
+    it('(d) File tĩnh /nv4/reportFlow.js với Origin cùng nguồn trả 200', async () => {
+      const res = await request(app)
+        .get('/nv4/reportFlow.js')
+        .set('Host', 'tunnel-preview.trycloudflare.com')
+        .set('Origin', 'https://tunnel-preview.trycloudflare.com');
+
+      expect(res.status).toBe(200);
+      expect(res.headers['access-control-allow-origin']).toBe('https://tunnel-preview.trycloudflare.com');
+      expect(res.text).toContain('ReportFlow');
+    });
+  });
+
+  describe('7. Hợp đồng nguồn dữ liệu ReportFlow & Xử lý lỗi tiếng Việt', () => {
+    it('(a.1) Dữ liệu nguồn camera hợp lệ với ReportPayloadSchema', () => {
+      const payload = buildReportPayload({
+        coords: { lat: 10.9515, lng: 106.8245, accuracyM: 15, source: 'gps' },
+        imageSource: 'camera',
+        deviceId: 'dev_test_camera',
+        capturedAt: new Date().toISOString(),
+      });
+
+      expect(payload.source).toBe('camera');
+      const parseResult = ReportPayloadSchema.safeParse(payload);
+      expect(parseResult.success).toBe(true);
+    });
+
+    it('(a.2) Dữ liệu nguồn gallery hợp lệ với ReportPayloadSchema', () => {
+      const payload = buildReportPayload({
+        coords: { lat: 10.9515, lng: 106.8245, accuracyM: 20, source: 'gps' },
+        imageSource: 'gallery',
+        deviceId: 'dev_test_gallery',
+        capturedAt: new Date().toISOString(),
+      });
+
+      expect(payload.source).toBe('gallery');
+      const parseResult = ReportPayloadSchema.safeParse(payload);
+      expect(parseResult.success).toBe(true);
+    });
+
+    it('(a.3) Dữ liệu ghim thủ công (manual-pin) hợp lệ với ReportPayloadSchema', () => {
+      const payload = buildReportPayload({
+        coords: { lat: 10.9515, lng: 106.8245, source: 'manual-pin' },
+        imageSource: 'camera',
+        deviceId: 'dev_test_pin',
+        capturedAt: new Date().toISOString(),
+      });
+
+      expect(payload.source).toBe('manual-pin');
+      const parseResult = ReportPayloadSchema.safeParse(payload);
+      expect(parseResult.success).toBe(true);
+    });
+
+    it("(a.4) Giá trị source='gps' bị ReportPayloadSchema từ chối", () => {
+      const invalidPayload = {
+        lat: 10.9515,
+        lng: 106.8245,
+        accuracyM: 15,
+        capturedAt: new Date().toISOString(),
+        deviceId: 'dev_test_gps_invalid',
+        source: 'gps',
+      };
+
+      const parseResult = ReportPayloadSchema.safeParse(invalidPayload);
+      expect(parseResult.success).toBe(false);
+    });
+
+    it('(b.1) Chuyển đổi lỗi mạng trình duyệt ("Load failed", "Failed to fetch", "NetworkError", TypeError) thành thông điệp tiếng Việt', () => {
+      const expectedMsg = 'Không kết nối được máy chủ. Kiểm tra mạng rồi bấm Gửi lại.';
+      expect(getFriendlyErrorMessage('Load failed')).toBe(expectedMsg);
+      expect(getFriendlyErrorMessage('Failed to fetch')).toBe(expectedMsg);
+      expect(getFriendlyErrorMessage('NetworkError')).toBe(expectedMsg);
+      expect(getFriendlyErrorMessage(new TypeError('Load failed'))).toBe(expectedMsg);
+      expect(getFriendlyErrorMessage(new TypeError('Failed to fetch'))).toBe(expectedMsg);
+    });
+
+    it('(b.2) Chuyển đổi lỗi kiểm tra dữ liệu (400 INVALID_REQUEST hoặc thông báo Zod) thành tiếng Việt thân thiện', () => {
+      const expectedMsg = 'Dữ liệu gửi đi chưa hợp lệ. Vui lòng thử lại; nếu lỗi lặp lại hãy báo cho quản trị viên.';
+      expect(getFriendlyErrorMessage({ code: 'INVALID_REQUEST' })).toBe(expectedMsg);
+      expect(getFriendlyErrorMessage({ code: '400', message: 'Invalid enum value' })).toBe(expectedMsg);
+      expect(
+        getFriendlyErrorMessage("Invalid enum value. Expected 'camera' | 'gallery' | 'manual-pin', received 'gps'")
+      ).toBe(expectedMsg);
+    });
+
+    it('(b.3) Ẩn hoàn toàn thông báo lỗi tiếng Anh thô chưa nhận diện sang thông báo chung', () => {
+      const res = getFriendlyErrorMessage('Unhandled internal error in dependency XYZ');
+      expect(res).toBe('Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại sau.');
+    });
+
+    it('(c.1) formatStatusVietnamese: chuyển đổi chính xác các mã trạng thái sang nhãn tiếng Việt', () => {
+      expect(formatStatusVietnamese('active')).toBe('Đang ngập');
+      expect(formatStatusVietnamese('pending')).toBe('Chờ xác minh');
+      expect(formatStatusVietnamese('rejected')).toBe('Không được chấp nhận');
+      expect(formatStatusVietnamese('resolved')).toBe('Đã hết ngập');
+      expect(formatStatusVietnamese('expired')).toBe('Đã hết hạn');
+      expect(formatStatusVietnamese('other')).toBe('other');
+    });
+
+    it('(c.2) formatContractB: không làm lộ cột image_dhash ở API đọc công khai', () => {
+      const mockDbPoint = {
+        id: 'fp_public_test',
+        lat: 10.95,
+        lng: 106.82,
+        status: 'active',
+        severity: 'medium',
+        image_dhash: '00ff00ff00ff00ff',
+      };
+      const mockReports = [
+        {
+          id: 'rep_1',
+          imagePath: '/uploads/2026/11/test.jpg',
+          imageSha256: 'sha256_secret_hash',
+          imageDhash: 'dhash_secret_hash',
+        },
+      ];
+
+      const publicOutput = formatContractB(mockDbPoint, mockReports);
+      expect(publicOutput.image_dhash).toBeUndefined();
+      expect(publicOutput.imageDhash).toBeUndefined();
+      expect(publicOutput.image_sha256).toBeUndefined();
+      expect(publicOutput.imageSha256).toBeUndefined();
+      expect(publicOutput.images).toEqual(['/uploads/2026/11/test.jpg']);
     });
   });
 });

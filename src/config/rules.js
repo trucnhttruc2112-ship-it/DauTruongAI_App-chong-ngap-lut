@@ -66,6 +66,10 @@ export const RULES = Object.freeze({
   IMAGE_MAX_DIMENSION: 1280,
   // Chất lượng nén ảnh JPEG (1-100)
   IMAGE_JPEG_QUALITY: 80,
+  // Khoảng cách Hamming tối đa để coi là ảnh gần trùng (dHash)
+  SIMILAR_IMAGE_MAX_HAMMING: 5,
+  // Cửa sổ thời gian so sánh ảnh gần trùng (giờ)
+  SIMILAR_IMAGE_WINDOW_HOURS: 24,
 
   // --- Trạng thái và mức độ hợp lệ ---
   STATUSES: Object.freeze(['pending', 'active', 'resolved', 'expired', 'rejected']),

@@ -49,6 +49,7 @@ export function runMigrations(dbInstance = null) {
       created_at TEXT NOT NULL,
       image_path TEXT,
       image_sha256 TEXT,
+      image_dhash TEXT,
       ai_json TEXT,
       trust_flags TEXT,
       is_demo INTEGER DEFAULT 0,
@@ -91,6 +92,13 @@ export function runMigrations(dbInstance = null) {
     CREATE INDEX IF NOT EXISTS idx_flood_events_point ON flood_events(flood_point_id);
     CREATE INDEX IF NOT EXISTS idx_flood_events_is_demo ON flood_events(is_demo);
   `);
+
+  // Migration bổ sung cột image_dhash (idempotent - an toàn khi bảng đã tồn tại từ trước)
+  const reportCols = db.pragma('table_info(reports)');
+  const hasDhash = reportCols.some((col) => col.name === 'image_dhash');
+  if (!hasDhash) {
+    db.exec(`ALTER TABLE reports ADD COLUMN image_dhash TEXT;`);
+  }
 
   return true;
 }

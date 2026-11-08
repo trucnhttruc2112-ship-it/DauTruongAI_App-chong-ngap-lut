@@ -12,6 +12,67 @@ import { getPosition } from './geo.js';
 import { compressImage, checkSecureContext } from './camera.js';
 import { getFriendlyErrorMessage } from './errorMessages.js';
 
+/**
+ * Xác định giá trị source hợp lệ ('camera' | 'gallery' | 'manual-pin') theo hợp đồng dữ liệu.
+ * Tọa độ từ GPS không phải là nguồn của ảnh.
+ * @param {Object} params
+ * @param {'gps' | 'manual-pin' | string} [params.coordSource] - Nguồn lấy tọa độ
+ * @param {'camera' | 'gallery' | string} [params.imageSource] - Nguồn ảnh
+ * @returns {'camera' | 'gallery' | 'manual-pin'}
+ */
+export function determineReportSource({ coordSource, imageSource } = {}) {
+  if (coordSource === 'manual-pin') {
+    return 'manual-pin';
+  }
+  if (imageSource === 'gallery') {
+    return 'gallery';
+  }
+  return 'camera';
+}
+
+/**
+ * Chuyển đổi mã trạng thái điểm ngập sang nhãn tiếng Việt thân thiện.
+ * @param {string} status
+ * @returns {string}
+ */
+export function formatStatusVietnamese(status) {
+  switch (status) {
+    case 'active':
+      return 'Đang ngập';
+    case 'pending':
+      return 'Chờ xác minh';
+    case 'rejected':
+      return 'Không được chấp nhận';
+    case 'resolved':
+      return 'Đã hết ngập';
+    case 'expired':
+      return 'Đã hết hạn';
+    default:
+      return status || 'Chờ xác minh';
+  }
+}
+
+/**
+ * Xây dựng payload đối tượng hợp lệ cho báo cáo ngập.
+ * Hàm thuần phục vụ kiểm thử và chuẩn hóa dữ liệu.
+ */
+export function buildReportPayload({ coords, imageSource = 'camera', deviceId, capturedAt, note } = {}) {
+  const source = determineReportSource({
+    coordSource: coords?.source,
+    imageSource,
+  });
+
+  return {
+    lat: Number(coords?.lat),
+    lng: Number(coords?.lng),
+    accuracyM: Number(coords?.accuracyM ?? (source === 'manual-pin' ? 0 : 10)),
+    capturedAt: capturedAt || new Date().toISOString(),
+    deviceId: String(deviceId || ''),
+    source,
+    ...(note && note.trim() ? { note: note.trim() } : {}),
+  };
+}
+
 export class ReportFlow {
   /**
    * @param {Object} options
@@ -35,6 +96,7 @@ export class ReportFlow {
     // State
     this.step = 1; // 1: GPS, 2: Chụp ảnh, 3: Xem lại & ghi chú, 4: Đang gửi, 5: Hoàn tất
     this.coords = null; // { lat, lng, accuracyM, source: 'gps' | 'manual-pin' }
+    this.imageSource = 'camera'; // 'camera' | 'gallery'
     this.compressedFile = null;
     this.previewUrl = null;
     this.note = '';
@@ -64,6 +126,7 @@ export class ReportFlow {
     }
     this.step = 1;
     this.coords = null;
+    this.imageSource = 'camera';
     this.compressedFile = null;
     this.note = '';
     this.error = null;
@@ -136,9 +199,10 @@ export class ReportFlow {
   /**
    * Bước 2: Xử lý tệp ảnh được chọn/chụp
    */
-  async handleFileSelected(file) {
+  async handleFileSelected(file, imageSource = 'camera') {
     if (!file) return;
 
+    this.imageSource = imageSource;
     this.error = null;
     this.render();
 
@@ -177,19 +241,24 @@ export class ReportFlow {
     this.render();
 
     const deviceId = getDeviceId();
+    const payload = buildReportPayload({
+      coords: this.coords,
+      imageSource: this.imageSource,
+      deviceId,
+      note: this.note,
+    });
+
     const formData = new FormData();
     formData.append('image', this.compressedFile);
-    formData.append('lat', String(this.coords.lat));
-    formData.append('lng', String(this.coords.lng));
-    if (this.coords.accuracyM !== null && this.coords.accuracyM !== undefined) {
-      formData.append('accuracyM', String(this.coords.accuracyM));
+    formData.append('lat', String(payload.lat));
+    formData.append('lng', String(payload.lng));
+    formData.append('accuracyM', String(payload.accuracyM));
+    formData.append('capturedAt', payload.capturedAt);
+    if (payload.note) {
+      formData.append('note', payload.note);
     }
-    formData.append('capturedAt', new Date().toISOString());
-    if (this.note && this.note.trim()) {
-      formData.append('note', this.note.trim());
-    }
-    formData.append('deviceId', deviceId);
-    formData.append('source', this.coords.source || 'gps');
+    formData.append('deviceId', payload.deviceId);
+    formData.append('source', payload.source);
 
     try {
       const response = await fetch(`${this.apiBase}/api/reports`, {
@@ -346,24 +415,45 @@ export class ReportFlow {
     promptText.style.marginBottom = '12px';
     body.appendChild(promptText);
 
-    // Input file ẩn ưu tiên camera sau
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.setAttribute('capture', 'environment');
-    fileInput.style.display = 'none';
-    fileInput.onchange = (e) => {
+    // Input file chụp ảnh hiện trường (ưu tiên camera sau)
+    const cameraInput = document.createElement('input');
+    cameraInput.type = 'file';
+    cameraInput.accept = 'image/*';
+    cameraInput.setAttribute('capture', 'environment');
+    cameraInput.style.display = 'none';
+    cameraInput.onchange = (e) => {
       const file = e.target.files && e.target.files[0];
-      if (file) this.handleFileSelected(file);
+      if (file) this.handleFileSelected(file, 'camera');
     };
-    body.appendChild(fileInput);
+    body.appendChild(cameraInput);
 
-    const btnCapture = this.createEl('button', 'nv4-btn nv4-btn-primary', '📷 Mở máy ảnh chụp hiện trường');
-    btnCapture.onclick = () => fileInput.click();
-    body.appendChild(btnCapture);
+    // Input file chọn ảnh từ thư viện
+    const galleryInput = document.createElement('input');
+    galleryInput.type = 'file';
+    galleryInput.accept = 'image/*';
+    galleryInput.style.display = 'none';
+    galleryInput.onchange = (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) this.handleFileSelected(file, 'gallery');
+    };
+    body.appendChild(galleryInput);
+
+    const btnGroup = this.createEl('div', 'nv4-btn-group');
+    btnGroup.style.flexDirection = 'column';
+
+    const btnCapture = this.createEl('button', 'nv4-btn nv4-btn-primary', '📷 Mở máy ảnh chụp trực tiếp');
+    btnCapture.onclick = () => cameraInput.click();
+    btnGroup.appendChild(btnCapture);
+
+    const btnGallery = this.createEl('button', 'nv4-btn nv4-btn-outline', '🖼️ Chọn ảnh có sẵn từ thư viện');
+    btnGallery.style.marginTop = '8px';
+    btnGallery.onclick = () => galleryInput.click();
+    btnGroup.appendChild(btnGallery);
+
+    body.appendChild(btnGroup);
 
     const btnBack = this.createEl('button', 'nv4-btn nv4-btn-outline', 'Quay lại chọn vị trí');
-    btnBack.style.marginTop = '10px';
+    btnBack.style.marginTop = '12px';
     btnBack.onclick = () => this.setStep(1);
     body.appendChild(btnBack);
   }
@@ -437,9 +527,20 @@ export class ReportFlow {
     infoCard.appendChild(typeRow);
 
     // Trạng thái điểm ngập
-    const statusRow = this.createEl('div', '', `Trạng thái: ${res.floodPoint?.status || 'Chờ xác thực'}`);
+    const statusText = formatStatusVietnamese(res.floodPoint?.status);
+    const statusRow = this.createEl('div', '', `Trạng thái: ${statusText}`);
     statusRow.style.marginTop = '6px';
     infoCard.appendChild(statusRow);
+
+    // Ghi chú nhỏ nếu AI ở chế độ mock
+    if (res.aiMode === 'mock') {
+      const mockNote = this.createEl('div', 'nv4-mock-notice', 'Kết quả AI hiện là giả lập (đang thử nghiệm)');
+      mockNote.style.fontSize = '0.78rem';
+      mockNote.style.color = 'var(--nv4-text-muted)';
+      mockNote.style.fontStyle = 'italic';
+      mockNote.style.marginTop = '4px';
+      infoCard.appendChild(mockNote);
+    }
 
     // Nhận định AI
     if (res.aiAnalysis) {

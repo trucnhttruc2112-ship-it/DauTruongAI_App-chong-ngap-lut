@@ -6,10 +6,12 @@ import sharp from 'sharp';
 import { app } from '../src/server.js';
 import { getDb, closeDb } from '../src/db/connection.js';
 import { runMigrations } from '../scripts/migrate.js';
-import { ENV } from '../src/config/env.js';
+import { ENV, validateEnvironmentConfig } from '../src/config/env.js';
 import floodPointRepo from '../src/repositories/floodPointRepo.js';
 import reportRepo from '../src/repositories/reportRepo.js';
 import eventRepo from '../src/repositories/eventRepo.js';
+import { geocodeService } from '../src/services/geocodeService.js';
+import { analyzeImage } from '../src/services/aiAnalyzer.js';
 
 describe('Prompt 3: API Tiếp nhận Báo cáo Ngập (POST /api/reports)', () => {
   let db;
@@ -369,5 +371,172 @@ describe('Prompt 3: API Tiếp nhận Báo cáo Ngập (POST /api/reports)', () 
         expect(content.equals(rollbackBuffer)).toBe(false);
       }
     }
+  });
+
+  it('12. SỬA ĐỔI 1: aiAnalyzer ném lỗi AI_NOT_CONFIGURED khi AI_MODE là remote/local và reportService xử lý thành pending', async () => {
+    // 1. Kiểm tra hàm analyzeImage trực tiếp ném lỗi AI_NOT_CONFIGURED
+    await expect(analyzeImage(validJpgBuffer1, {}, 'remote')).rejects.toThrow('Chế độ AI remote chưa được cài đặt');
+    await expect(analyzeImage(validJpgBuffer1, {}, 'local')).rejects.toThrow('Chế độ AI local chưa được cài đặt');
+
+    // 2. Kiểm tra reportService tiếp nhận qua API: điểm ngập được tạo ở trạng thái pending
+    const bufRemote = await sharp({
+      create: { width: 170, height: 170, channels: 3, background: { r: 90, g: 90, b: 90 } },
+    }).jpeg().toBuffer();
+
+    const res = await request(app)
+      .post('/api/reports')
+      .set('x-ai-mode', 'remote')
+      .field('lat', 10.9600)
+      .field('lng', 106.8500)
+      .field('accuracyM', 15)
+      .field('capturedAt', new Date().toISOString())
+      .field('deviceId', 'device_remote_unconfigured')
+      .attach('image', bufRemote, 'remote_test.jpg');
+
+    expect(res.status).toBe(201);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.data.aiResult.isFlood).toBeNull();
+    expect(res.body.data.aiResult.error).toBe('AI_NOT_CONFIGURED');
+    expect(res.body.data.floodPoint.status).toBe('pending');
+  });
+
+  it('13. SỬA ĐỔI 1: Cấm tuyệt đối AI_MODE=mock khi DATA_MODE=real', () => {
+    // DATA_MODE=real với AI_MODE=mock phải ném lỗi cấu hình
+    expect(() => {
+      validateEnvironmentConfig({ DATA_MODE: 'real', AI_MODE: 'mock' });
+    }).toThrow('Chế độ dữ liệu thật (DATA_MODE=real) cấm sử dụng AI_MODE=mock');
+
+    // DATA_MODE=real với AI_MODE=remote hoặc local được phép cấu hình
+    expect(() => {
+      validateEnvironmentConfig({ DATA_MODE: 'real', AI_MODE: 'remote' });
+    }).not.toThrow();
+  });
+
+  it('14. SỬA ĐỔI 2: geocodeService gán wardId theo phường gần nhất và lưu cờ WARD_ESTIMATED', async () => {
+    // Tọa độ gần Amata Long Bình (10.9447, 106.8243)
+    const geo = await geocodeService.reverse(10.9447, 106.8243);
+    expect(geo.wardId).toBe('long-binh');
+    expect(geo.isWardEstimated).toBe(true);
+    expect(geo.wardEstimateNote).toBe('TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6');
+
+    // Gửi báo cáo ngập tại vị trí này, kiểm tra wardId và cờ WARD_ESTIMATED được ghi nhận
+    const wardBuf = await sharp({
+      create: { width: 180, height: 180, channels: 3, background: { r: 15, g: 100, b: 200 } },
+    }).jpeg().toBuffer();
+
+    const res = await request(app)
+      .post('/api/reports')
+      .field('lat', 10.9447)
+      .field('lng', 106.8243)
+      .field('accuracyM', 15)
+      .field('capturedAt', new Date().toISOString())
+      .field('deviceId', 'device_ward_estimate_test')
+      .attach('image', wardBuf, 'ward_test.jpg');
+
+    expect(res.status).toBe(201);
+    const reportInDb = reportRepo.findById(res.body.data.report.id);
+    expect(reportInDb.trustFlags).toContain('WARD_ESTIMATED');
+  });
+
+  it('15. Header x-ai-mode chỉ có tác dụng khi NODE_ENV=test; ngoài test bị bỏ qua hoàn toàn', async () => {
+    const originalEnv = process.env.NODE_ENV;
+    try {
+      // Giả lập môi trường production (không phải test)
+      process.env.NODE_ENV = 'production';
+
+      const bufIgnored = await sharp({
+        create: { width: 190, height: 190, channels: 3, background: { r: 80, g: 150, b: 220 } },
+      }).jpeg().toBuffer();
+
+      // Gửi x-ai-mode=remote, nhưng vì NODE_ENV=production nên header bị bỏ qua và dùng AI_MODE=mock mặc định
+      const res = await request(app)
+        .post('/api/reports')
+        .set('x-ai-mode', 'remote')
+        .field('lat', 10.9447)
+        .field('lng', 106.8243)
+        .field('accuracyM', 15)
+        .field('capturedAt', new Date().toISOString())
+        .field('deviceId', 'device_env_bypass_test')
+        .attach('image', bufIgnored, 'bypass.jpg');
+
+      expect(res.status).toBe(201);
+      // Không bị ném lỗi AI_NOT_CONFIGURED mà được xử lý bằng mock (active)
+      expect(res.body.data.aiResult.error).toBeNull();
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+    }
+  });
+
+  it('16. Phát hiện ảnh gần trùng (dHash): cùng deviceId gửi ảnh gần trùng -> từ chối 409 DUPLICATE_IMAGE ("Ảnh này giống ảnh bạn vừa gửi.")', async () => {
+    const sampleSvg = `<svg width="180" height="180">
+      <circle cx="90" cy="90" r="70" fill="blue"/>
+      <rect x="20" y="20" width="50" height="50" fill="orange"/>
+    </svg>`;
+    const bufFirst = await sharp(Buffer.from(sampleSvg)).jpeg({ quality: 90 }).toBuffer();
+    const bufSecond = await sharp(Buffer.from(sampleSvg)).jpeg({ quality: 60 }).toBuffer();
+
+    const res1 = await request(app)
+      .post('/api/reports')
+      .field('lat', 10.9500)
+      .field('lng', 106.8200)
+      .field('accuracyM', 10)
+      .field('capturedAt', new Date().toISOString())
+      .field('deviceId', 'device_dhash_same_user')
+      .attach('image', bufFirst, 'first.jpg');
+
+    expect(res1.status).toBe(201);
+    expect(res1.body.ok).toBe(true);
+
+    const res2 = await request(app)
+      .post('/api/reports')
+      .field('lat', 10.9500)
+      .field('lng', 106.8200)
+      .field('accuracyM', 10)
+      .field('capturedAt', new Date().toISOString())
+      .field('deviceId', 'device_dhash_same_user')
+      .attach('image', bufSecond, 'second.jpg');
+
+    expect(res2.status).toBe(409);
+    expect(res2.body.ok).toBe(false);
+    expect(res2.body.error.code).toBe('DUPLICATE_IMAGE');
+    expect(res2.body.error.message).toBe('Ảnh này giống ảnh bạn vừa gửi.');
+  });
+
+  it('17. Phát hiện ảnh gần trùng (dHash): khác deviceId gửi ảnh gần trùng -> 201 kèm cờ SIMILAR_IMAGE và lưu cột image_dhash', async () => {
+    const sampleSvg = `<svg width="180" height="180">
+      <rect width="180" height="90" fill="teal"/>
+      <polygon points="90,100 140,170 40,170" fill="crimson"/>
+    </svg>`;
+    const bufDevA = await sharp(Buffer.from(sampleSvg)).jpeg({ quality: 85 }).toBuffer();
+    const bufDevB = await sharp(Buffer.from(sampleSvg)).jpeg({ quality: 55 }).toBuffer();
+
+    const resA = await request(app)
+      .post('/api/reports')
+      .field('lat', 10.9520)
+      .field('lng', 106.8220)
+      .field('accuracyM', 10)
+      .field('capturedAt', new Date().toISOString())
+      .field('deviceId', 'device_dhash_A')
+      .attach('image', bufDevA, 'devA.jpg');
+
+    expect(resA.status).toBe(201);
+    const reportA = reportRepo.findById(resA.body.data.report.id);
+    expect(reportA.imageDhash).toBeTruthy();
+    expect(typeof reportA.imageDhash).toBe('string');
+
+    const resB = await request(app)
+      .post('/api/reports')
+      .field('lat', 10.9520)
+      .field('lng', 106.8220)
+      .field('accuracyM', 10)
+      .field('capturedAt', new Date().toISOString())
+      .field('deviceId', 'device_dhash_B')
+      .attach('image', bufDevB, 'devB.jpg');
+
+    expect(resB.status).toBe(201);
+    const reportB = reportRepo.findById(resB.body.data.report.id);
+    expect(reportB.trustFlags).toContain('SIMILAR_IMAGE');
+    expect(reportB.imageDhash).toBeTruthy();
+    expect(resB.body.data.aiMode).toBeDefined();
   });
 });

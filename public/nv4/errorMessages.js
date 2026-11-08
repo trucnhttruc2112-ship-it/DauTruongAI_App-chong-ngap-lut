@@ -3,15 +3,46 @@
  * Hàm thuần (pure function) để dễ dàng kiểm thử độc lập.
  */
 
+const VIETNAMESE_ACCENT_REGEX = /[àáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ]/i;
+
 export function getFriendlyErrorMessage(err) {
   if (!err) {
     return 'Đã xảy ra lỗi không xác định. Vui lòng thử lại.';
   }
 
-  // Trường hợp truyền vào chuỗi mã lỗi trực tiếp hoặc object lỗi
+  // Lấy chuỗi message thô và mã code
+  const rawMsg = typeof err === 'string'
+    ? err
+    : (err.message || (typeof err.error === 'string' ? err.error : err.error?.message) || '');
   const code = (typeof err === 'string' ? err : err.code || err.status || '').toString().toUpperCase();
   const details = typeof err === 'object' ? err : {};
 
+  // 1. Kiểm tra lỗi mạng trình duyệt ("Load failed", "Failed to fetch", "NetworkError", TypeError khi fetch)
+  const isBrowserNetworkError =
+    err instanceof TypeError ||
+    rawMsg === 'Load failed' ||
+    rawMsg === 'Failed to fetch' ||
+    rawMsg === 'NetworkError' ||
+    /Load failed|Failed to fetch|NetworkError when attempting to fetch/i.test(rawMsg);
+
+  if (isBrowserNetworkError) {
+    return 'Không kết nối được máy chủ. Kiểm tra mạng rồi bấm Gửi lại.';
+  }
+
+  // 2. Kiểm tra lỗi kiểm tra dữ liệu (400, INVALID_REQUEST, VALIDATION_ERROR hoặc thông báo lỗi từ Zod)
+  const isValidationError =
+    code === 'INVALID_REQUEST' ||
+    code === 'VALIDATION_ERROR' ||
+    code === '400' ||
+    code === 'UNPROCESSABLE_ENTITY' ||
+    code === '422' ||
+    (code !== 'SECURE_CONTEXT_REQUIRED' && /Invalid enum value|Expected |\bRequired\b|invalid_type/i.test(rawMsg));
+
+  if (isValidationError) {
+    return 'Dữ liệu gửi đi chưa hợp lệ. Vui lòng thử lại; nếu lỗi lặp lại hãy báo cho quản trị viên.';
+  }
+
+  // 3. Các mã lỗi nghiệp vụ cụ thể
   switch (code) {
     case 'OUT_OF_AREA':
       return 'Vị trí này nằm ngoài địa bàn tỉnh Đồng Nai được hỗ trợ báo cáo ngập.';
@@ -37,12 +68,9 @@ export function getFriendlyErrorMessage(err) {
 
     case 'CONFLICT':
     case '409':
-      return details.message || 'Xác nhận của bạn bị trùng hoặc điểm ngập đã chuyển trạng thái.';
-
-    case 'UNPROCESSABLE_ENTITY':
-    case 'VALIDATION_ERROR':
-    case '422':
-      return details.message || 'Dữ liệu gửi lên không đúng định dạng hoặc không hợp lệ. Vui lòng kiểm tra lại.';
+      return details.message && VIETNAMESE_ACCENT_REGEX.test(details.message)
+        ? details.message
+        : 'Xác nhận của bạn bị trùng hoặc điểm ngập đã chuyển trạng thái.';
 
     case 'POINT_NOT_FOUND':
     case '404':
@@ -56,15 +84,17 @@ export function getFriendlyErrorMessage(err) {
 
     case 'NETWORK_ERROR':
     case 'FETCH_FAILED':
-      return 'Không thể kết nối với máy chủ. Vui lòng kiểm tra kết nối mạng (4G/Wi-Fi) và thử lại.';
+      return 'Không thể kết nối với máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.';
 
     case 'SECURE_CONTEXT_REQUIRED':
       return 'Trình duyệt yêu cầu kết nối bảo mật HTTPS để mở máy ảnh và định vị GPS. Vui lòng truy cập qua HTTPS hoặc localhost.';
 
     default:
-      if (details.message && typeof details.message === 'string') {
-        return details.message;
+      // Nếu message đã là tiếng Việt thì giữ nguyên
+      if (rawMsg && VIETNAMESE_ACCENT_REGEX.test(rawMsg)) {
+        return rawMsg;
       }
+      // Không bao giờ để lộ thông báo thô tiếng Anh của thư viện/trình duyệt
       return 'Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại sau.';
   }
 }
