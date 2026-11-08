@@ -1,13 +1,14 @@
 # Tiến Độ Triển Khai Module NV4 (Báo Cáo Ngập & Xác Thực)
 
 ## Hiện trạng tổng quan
-- **Prompt đã hoàn thành:** P1, P2, P3, P5, P4, P6.
-- **Tổng số test hiện tại:** 118 passed / 0 failed (12 test files).
+- **Prompt đã hoàn thành:** P1, P2, P3, P5, P4, P6, P7.
+- **Tổng số test hiện tại:** 141 passed / 0 failed (13 test files).
 - **Benchmark 1000 điểm:**
   + GET `/api/flood-points.geojson`: ~77 ms (< 200 ms: ĐẠT)
   + GET `/api/flood-prone`: ~17 ms (< 200 ms: ĐẠT)
   + ETag 304: ĐẠT
-- **Prompt tiếp theo:** P7 (Tích hợp với NV1, NV2, NV5).
+- **Kịch bản E2E:** 6/6 bước PASS (`npm run e2e`).
+- **Prompt tiếp theo:** P8 (Kiểm thử toàn diện & tài liệu bàn giao).
 
 ---
 
@@ -59,4 +60,14 @@
   + `nv4.css`: CSS prefix `.nv4-`, mobile-first 360px, nút to dễ bấm một tay.
   + `demo.html`: trang demo độc lập không cần NV2.
 - `src/server.js`: phục vụ tĩnh `public/` cho `/nv4/demo.html`.
-- Test: `tests/p6.test.js` (13 tests passed)
+- Test: `tests/p6.test.js` (26 tests passed)
+
+### P7: Gói tích hợp NV1, NV2, NV5
+- `src/config/env.js`: Kiểm tra bắt buộc `ALLOWED_ORIGINS` khi `NODE_ENV=production`.
+- `integration/nv5-flood-prone-adapter.js`: Adapter lấy danh sách điểm hay ngập cho NV5 dự báo theo lượng mưa.
+- `integration/nv1-leaflet-example.html`: Mẫu Leaflet tối giản cho NV1 (circleMarker, viền tím prone, 2 lớp bật/tắt, nhúng ConfirmWidget, XSS-safe textContent, lưu ý tọa độ GeoJSON `[lng, lat]`).
+- `integration/nv2-wardpage-example.js`: Mẫu trang phường cho NV2 (`fetchWardFloodPoints`, `renderWardPage`, nhúng ReportFlow & ConfirmWidget).
+- `docs/INTEGRATION.md`: Tài liệu hướng dẫn tích hợp chi tiết, bảng gotchas lỗi thường gặp và 4 câu hỏi mở liên NV.
+- `scripts/e2e.js`: Kịch bản kiểm thử End-to-End trên DB tạm (`npm run e2e`) kiểm tra 6 bước (seed, báo mới, gộp trùng 50m, điểm độc lập, xác nhận still/ended, phân lớp layer GeoJSON).
+- `src/server.js`: Phục vụ tĩnh `/integration` cho các trang ví dụ mẫu.
+- Test: `tests/p7.test.js` (6 tests passed).

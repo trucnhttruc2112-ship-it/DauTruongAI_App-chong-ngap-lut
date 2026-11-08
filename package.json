@@ -10,6 +10,7 @@
     "seed": "node scripts/seed.js",
     "seed:clear": "node scripts/seedClear.js",
     "bench": "node scripts/benchmark.js",
+    "e2e": "node scripts/e2e.js",
     "test": "vitest run"
   },
   "dependencies": {

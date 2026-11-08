@@ -15,7 +15,7 @@ export const ENV = Object.freeze({
   AI_MODE: process.env.AI_MODE || 'mock', // 'mock' | 'local' | 'remote'
   DATA_MODE: process.env.DATA_MODE || 'demo', // 'demo' | 'real'
   PUBLIC_BASE_URL: process.env.PUBLIC_BASE_URL || 'http://localhost:3000',
-  ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000')
+  ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000,http://127.0.0.1:3000'))
     .split(',')
     .map(s => s.trim())
     .filter(Boolean),
@@ -24,6 +24,11 @@ export const ENV = Object.freeze({
 export function validateEnvironmentConfig(env = ENV) {
   if (env.DATA_MODE === 'real' && env.AI_MODE === 'mock') {
     throw new Error('Lỗi cấu hình: Chế độ dữ liệu thật (DATA_MODE=real) cấm sử dụng AI_MODE=mock.');
+  }
+  if (env.NODE_ENV === 'production') {
+    if (!env.ALLOWED_ORIGINS || env.ALLOWED_ORIGINS.length === 0) {
+      throw new Error('Lỗi cấu hình: Môi trường production (NODE_ENV=production) bắt buộc phải cấu hình ALLOWED_ORIGINS hợp lệ.');
+    }
   }
 }
 

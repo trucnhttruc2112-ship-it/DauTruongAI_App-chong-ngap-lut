@@ -81,9 +81,10 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Phục vụ tĩnh ảnh upload và thư mục public (cho frontend NV4)
+// Phục vụ tĩnh ảnh upload, thư mục public (frontend NV4) và integration (ví dụ tích hợp)
 app.use('/uploads', express.static(uploadFullPath));
 app.use(express.static(path.resolve('public')));
+app.use('/integration', express.static(path.resolve('integration')));
 
 // Áp dụng giới hạn tần suất chung IP
 app.use('/api', ipLimiter);
