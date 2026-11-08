@@ -1,13 +1,13 @@
 # Tiến Độ Triển Khai Module NV4 (Báo Cáo Ngập & Xác Thực)
 
 ## Hiện trạng tổng quan
-- **Prompt đã hoàn thành:** P1, P2, P3, P5, P4.
-- **Tổng số test hiện tại:** 105 passed / 0 failed (11 test files).
+- **Prompt đã hoàn thành:** P1, P2, P3, P5, P4, P6.
+- **Tổng số test hiện tại:** 118 passed / 0 failed (12 test files).
 - **Benchmark 1000 điểm:**
   + GET `/api/flood-points.geojson`: ~77 ms (< 200 ms: ĐẠT)
   + GET `/api/flood-prone`: ~17 ms (< 200 ms: ĐẠT)
   + ETag 304: ĐẠT
-- **Prompt tiếp theo:** P6 (Module frontend: camera, GPS, gửi báo cáo, nút xác nhận).
+- **Prompt tiếp theo:** P7 (Tích hợp với NV1, NV2, NV5).
 
 ---
 
@@ -47,3 +47,16 @@
 - Bảo mật:
   + `x-fake-now`, `x-ai-mode`, `x-ai-simulate`, `x-simulate-db-error` chỉ hoạt động khi `NODE_ENV=test`, ngoài test bị bỏ qua hoàn toàn.
 - Test: `tests/p4.test.js` (18 tests passed)
+
+### P6: Module Frontend Camera, GPS, Báo Cáo, Xác Nhận
+- `public/nv4/`:
+  + `deviceId.js`: tạo và lưu uuid ẩn danh trong localStorage, có in-memory fallback.
+  + `geo.js`: `getPosition()`, `formatGeoError()` phân biệt quyền / tín hiệu / timeout kèm hướng dẫn tiếng Việt.
+  + `camera.js`: ưu tiên `input capture="environment"`, hỗ trợ `getUserMedia`, nén canvas JPEG cạnh dài ≤ 1600px q0.85, cảnh báo `isSecureContext`.
+  + `errorMessages.js`: ánh xạ mã lỗi API (OUT_OF_AREA, GPS_TOO_INACCURATE, REPORT_TOO_OLD, DUPLICATE_IMAGE, RATE_LIMITED...) sang tiếng Việt.
+  + `reportFlow.js`: lớp `ReportFlow` 5 bước, fallback ghim thủ công `onRequestManualPin`, hiển thị textContent an toàn.
+  + `confirmWidget.js`: widget xác nhận "Vẫn ngập / Đã hết ngập", lấy GPS, gọi POST confirm, khóa nút sau bấm.
+  + `nv4.css`: CSS prefix `.nv4-`, mobile-first 360px, nút to dễ bấm một tay.
+  + `demo.html`: trang demo độc lập không cần NV2.
+- `src/server.js`: phục vụ tĩnh `public/` cho `/nv4/demo.html`.
+- Test: `tests/p6.test.js` (13 tests passed)

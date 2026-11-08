@@ -42,8 +42,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Phục vụ tĩnh ảnh upload
+// Phục vụ tĩnh ảnh upload và thư mục public (cho frontend NV4)
 app.use('/uploads', express.static(uploadFullPath));
+app.use(express.static(path.resolve('public')));
 
 // Áp dụng giới hạn tần suất chung IP
 app.use('/api', ipLimiter);
