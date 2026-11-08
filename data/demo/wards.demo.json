@@ -1,0 +1,21 @@
+{
+  "_note": "DỮ LIỆU GIẢ LẬP – CHỜ NV6",
+  "province": "Đồng Nai",
+  "wards": [
+    { "id": "long-binh", "name": "Phường Long Bình", "district": "Thành phố Biên Hòa" },
+    { "id": "trang-dai", "name": "Phường Trảng Dài", "district": "Thành phố Biên Hòa" },
+    { "id": "ho-nai", "name": "Phường Hố Nai", "district": "Thành phố Biên Hòa" },
+    { "id": "tan-phong", "name": "Phường Tân Phong", "district": "Thành phố Biên Hòa" },
+    { "id": "quyet-thang", "name": "Phường Quyết Thắng", "district": "Thành phố Biên Hòa" },
+    { "id": "tam-hiep", "name": "Phường Tam Hiệp", "district": "Thành phố Biên Hòa" },
+    { "id": "an-binh", "name": "Phường An Bình", "district": "Thành phố Biên Hòa" },
+    { "id": "phuoc-tan", "name": "Phường Phước Tân", "district": "Thành phố Biên Hòa" },
+    { "id": "tt-long-thanh", "name": "Thị trấn Long Thành", "district": "Huyện Long Thành" },
+    { "id": "an-phuoc", "name": "Xã An Phước", "district": "Huyện Long Thành" },
+    { "id": "loc-an", "name": "Xã Lộc An", "district": "Huyện Long Thành" },
+    { "id": "tt-trang-bom", "name": "Thị trấn Trảng Bom", "district": "Huyện Trảng Bom" },
+    { "id": "ho-nai-3", "name": "Xã Hố Nai 3", "district": "Huyện Trảng Bom" },
+    { "id": "tt-hiep-phuoc", "name": "Thị trấn Hiệp Phước", "district": "Huyện Nhơn Trạch" },
+    { "id": "phu-hoi", "name": "Xã Phú Hội", "district": "Huyện Nhơn Trạch" }
+  ]
+}
