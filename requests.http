@@ -1,0 +1,71 @@
+### NV4 - Kịch bản kiểm thử API POST /api/reports (Dùng với VS Code REST Client hoặc IntelliJ)
+
+@baseUrl = http://localhost:3000
+
+### 1. Health check
+GET {{baseUrl}}}/api/health
+
+### 2. Gửi báo cáo ngập mới (Hợp lệ trong Đồng Nai)
+POST {{baseUrl}}/api/reports
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="lat"
+
+10.9447
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="lng"
+
+106.8243
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="accuracyM"
+
+15
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="capturedAt"
+
+2026-11-08T10:00:00.000Z
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="deviceId"
+
+device_manual_demo_01
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="source"
+
+camera
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="note"
+
+Ngập nặng ngã tư Amata, xe chết máy
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="flood_test.jpg"
+Content-Type: image/jpeg
+
+< ./uploads/.gitkeep
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 3. Gửi báo cáo ngoài Đồng Nai (Hà Nội) -> 422 OUT_OF_AREA
+POST {{baseUrl}}/api/reports
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="lat"
+
+21.0285
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="lng"
+
+105.8542
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="accuracyM"
+
+10
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="capturedAt"
+
+2026-11-08T10:00:00.000Z
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="deviceId"
+
+device_hanoi
+------WebKitFormBoundary7MA4YWxkTrZu0gW--

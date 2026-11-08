@@ -4,5 +4,6 @@ data/*.sqlite*
 data/*.db*
 uploads/*
 !uploads/.gitkeep
+uploads_test_tmp/
 coverage/
 .DS_Store

@@ -5,6 +5,8 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { ENV } from './config/env.js';
 import floodPointRepo from './repositories/floodPointRepo.js';
+import reportRoutes from './routes/reportRoutes.js';
+import { ipLimiter } from './middleware/rateLimiter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,6 +36,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Phục vụ tĩnh ảnh upload
 app.use('/uploads', express.static(uploadFullPath));
+
+// Áp dụng giới hạn tần suất chung IP
+app.use('/api', ipLimiter);
+
+// Đăng ký các Route API
+app.use('/api/reports', reportRoutes);
 
 // Endpoint kiểm tra sức khỏe hệ thống (Health Check)
 app.get('/api/health', (req, res) => {

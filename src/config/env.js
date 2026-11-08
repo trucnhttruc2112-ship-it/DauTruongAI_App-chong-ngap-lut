@@ -9,7 +9,9 @@ export const ENV = Object.freeze({
   DB_PATH: process.env.NODE_ENV === 'test'
     ? (process.env.TEST_DB_PATH || ':memory:')
     : (process.env.DB_PATH || './data/dongnai_flood.sqlite'),
-  UPLOAD_DIR: process.env.UPLOAD_DIR || './uploads',
+  UPLOAD_DIR: process.env.NODE_ENV === 'test'
+    ? (process.env.TEST_UPLOAD_DIR || './uploads_test_tmp')
+    : (process.env.UPLOAD_DIR || './uploads'),
   AI_MODE: process.env.AI_MODE || 'mock', // 'mock' | 'local' | 'remote'
   DATA_MODE: process.env.DATA_MODE || 'demo', // 'demo' | 'real'
   PUBLIC_BASE_URL: process.env.PUBLIC_BASE_URL || 'http://localhost:3000',
