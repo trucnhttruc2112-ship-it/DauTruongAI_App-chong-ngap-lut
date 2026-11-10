@@ -150,8 +150,13 @@ describe('Bảo mật & Độ bền - Nhóm 1 (Mức Cao)', () => {
   describe('5. trust proxy cấu hình từ biến TRUST_PROXY', () => {
     it('5.1. app.get("trust proxy") nhận giá trị theo cấu hình môi trường', () => {
       const tp = app.get('trust proxy');
-      // Mặc định ENV.TRUST_PROXY là false (khi không cấu hình)
-      expect(typeof tp === 'boolean' || typeof tp === 'number' || typeof tp === 'function').toBe(true);
+      // Mặc định ENV.TRUST_PROXY là 'loopback' (ngoài production) hoặc false/number/function
+      expect(
+        typeof tp === 'boolean' ||
+        typeof tp === 'number' ||
+        typeof tp === 'function' ||
+        typeof tp === 'string'
+      ).toBe(true);
     });
   });
 

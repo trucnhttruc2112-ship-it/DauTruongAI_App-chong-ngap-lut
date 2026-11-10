@@ -9,6 +9,7 @@ export const ipLimiter = rateLimit({
   max: RULES.RATE_LIMIT_REQUESTS_PER_MINUTE, // 20
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => req.ip,
   skip: (req) => process.env.NODE_ENV === 'test' && req.headers['x-test-ip-rate-limit'] !== 'true',
   handler: (req, res) => {
     return res.status(429).json({
@@ -51,6 +52,7 @@ export const confirmIpLimiter = rateLimit({
   max: RULES.RATE_LIMIT_CONFIRMS_PER_MINUTE || 10,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => req.ip,
   skip: (req) => process.env.NODE_ENV === 'test' && req.headers['x-test-ip-rate-limit'] !== 'true',
   handler: (req, res) => {
     return res.status(429).json({

@@ -3,13 +3,46 @@ import path from 'path';
 
 dotenv.config();
 
-function parseTrustProxy(val) {
-  if (val === undefined || val === null || val === '') return false;
-  if (val === 'true') return true;
-  if (val === 'false') return false;
-  const num = Number(val);
-  if (!isNaN(num)) return num;
-  return val;
+export function parseTrustProxy(val, nodeEnv = process.env.NODE_ENV || 'development') {
+  if (val === undefined || val === null || val === '') {
+    return nodeEnv === 'production' ? false : 'loopback';
+  }
+
+  const trimmed = String(val).trim();
+
+  if (trimmed === 'false') return false;
+  if (trimmed === 'true') return true;
+  if (/^\d+$/.test(trimmed)) {
+    return parseInt(trimmed, 10);
+  }
+
+  const standardKeywords = ['loopback', 'linklocal', 'uniquelocal'];
+  if (standardKeywords.includes(trimmed.toLowerCase())) {
+    return trimmed.toLowerCase();
+  }
+
+  // Danh sách IP hoặc CIDR (có thể phân tách bằng dấu phẩy)
+  const parts = trimmed.split(',').map(s => s.trim()).filter(Boolean);
+  if (parts.length === 0) {
+    throw new Error(`Lỗi cấu hình: Giá trị TRUST_PROXY không hợp lệ: "${val}".`);
+  }
+
+  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/;
+  const ipv6Regex = /^([0-9a-fA-F:]+)(\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))?$/;
+
+  for (const part of parts) {
+    const isKeyword = standardKeywords.includes(part.toLowerCase());
+    const isIpv4 = ipv4Regex.test(part);
+    const isIpv6 = ipv6Regex.test(part) && part.includes(':');
+
+    if (!isKeyword && !isIpv4 && !isIpv6) {
+      throw new Error(
+        `Lỗi cấu hình: Giá trị TRUST_PROXY không hợp lệ: "${val}". Chỉ chấp nhận boolean (true/false), số hop nguyên dương, 'loopback', hoặc danh sách IP/CIDR hợp lệ.`
+      );
+    }
+  }
+
+  return parts.length === 1 ? parts[0] : parts;
 }
 
 export const ENV = Object.freeze({
@@ -27,7 +60,7 @@ export const ENV = Object.freeze({
   AI_TIMEOUT_MS: parseInt(process.env.AI_TIMEOUT_MS || '20000', 10),
   DATA_MODE: process.env.DATA_MODE || 'demo', // 'demo' | 'real'
   ALLOW_DEMO_IN_PROD: process.env.ALLOW_DEMO_IN_PROD === 'true',
-  TRUST_PROXY: parseTrustProxy(process.env.TRUST_PROXY),
+  TRUST_PROXY: parseTrustProxy(process.env.TRUST_PROXY, process.env.NODE_ENV || 'development'),
   PUBLIC_BASE_URL: process.env.PUBLIC_BASE_URL || 'http://localhost:3000',
   ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000,http://127.0.0.1:3000'))
     .split(',')

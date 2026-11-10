@@ -97,7 +97,35 @@ export async function compressAndSaveImage(buffer, baseUploadDir, now = new Date
     .jpeg({ quality: RULES.IMAGE_JPEG_QUALITY })
     .toBuffer();
 
-  await fs.promises.writeFile(fullPath, processedBuffer);
+  try {
+    await fs.promises.writeFile(fullPath, processedBuffer);
+  } catch (writeErr) {
+    // Dọn dẹp file dở dang nếu có lỗi xảy ra
+    try {
+      if (fs.existsSync(fullPath)) {
+        await fs.promises.unlink(fullPath);
+      }
+    } catch {}
+
+    if (writeErr.code === 'ENOSPC') {
+      const err = new Error('Bộ nhớ máy chủ đã đầy, không thể lưu tệp hình ảnh');
+      err.code = 'STORAGE_FULL';
+      err.status = 507;
+      throw err;
+    }
+
+    if (writeErr.code === 'EACCES' || writeErr.code === 'EPERM') {
+      const err = new Error('Máy chủ không có quyền ghi tệp tin vào thư mục lưu trữ');
+      err.code = 'STORAGE_PERMISSION_DENIED';
+      err.status = 500;
+      throw err;
+    }
+
+    const err = new Error(`Không thể lưu tệp hình ảnh: ${writeErr.message}`);
+    err.code = 'STORAGE_WRITE_ERROR';
+    err.status = 500;
+    throw err;
+  }
 
   const relativeUrl = `/uploads/${year}/${month}/${filename}`;
 

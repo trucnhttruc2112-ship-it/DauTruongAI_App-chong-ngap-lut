@@ -1,29 +1,34 @@
 # Tiến Độ Triển Khai Module NV4 (Báo Cáo Ngập & Xác Thực)
 
 ## Hiện trạng tổng quan
-- **Prompt đã hoàn thành:** P1, P2, P3, P5, P4, P6, P7, Tích hợp NV3, P9 (Nhóm 1 - Mức Cao).
-- **Tổng số test hiện tại:** 176 passed / 0 failed (17 test files).
+- **Prompt đã hoàn thành:** P1, P2, P3, P5, P4, P6, P7, Tích hợp NV3, P9 (Hoàn thành toàn bộ 13 mục Bảo mật & Độ bền + Nâng cấp TRUST_PROXY loopback tunnel an toàn).
+- **Tổng số test hiện tại:** 193 passed / 0 failed (19 test files).
 - **Benchmark 1000 điểm:**
   + GET `/api/flood-points.geojson`: ~77 ms (< 200 ms: ĐẠT)
   + GET `/api/flood-prone`: ~17 ms (< 200 ms: ĐẠT)
   + ETag 304: ĐẠT
 - **Kịch bản E2E:** 6/6 bước PASS (`npm run e2e`).
-- **Prompt tiếp theo:** P9 (Mục 11, 12, 13 còn lại của Nhóm 2 & 3).
+- **Prompt tiếp theo:** P8 (Kiểm thử toàn diện & tài liệu bàn giao).
 
 ---
 
 ## Chi tiết các prompt
 
-### P9: Rà soát Bảo Mật & Độ Bền (Đang thực hiện)
+### P9: Rà soát Bảo Mật & Độ Bền (ĐÃ HOÀN THÀNH TOÀN DIỆN 13/13 MỤC)
 - **Nhóm 1 – Mức Cao (ĐÃ XONG - 12 tests passed):**
   + Upload, Static, Chống lạm dụng IP, Cấu hình Production, Trust Proxy, AI Remote.
   + Test: `tests/securityGroup1.test.js` (12 tests).
 - **Nhóm 2 (Mục 7-10) – Mức Trung (ĐÃ XONG - 6 tests passed):**
-  + Mục 7 (SQL Injection): Tham số hóa an toàn trên toàn bộ query lọc và insert, không drop bảng khi nhận payload độc hại.
-  + Mục 8 (XSS Static Analysis): Quét tĩnh `public/nv4` và `integration/`, không có gán HTML nguy hiểm (chỉ cho phép innerHTML rỗng).
-  + Mục 9 (Header bảo mật): `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: SAMEORIGIN`.
-  + Mục 10 (Lỗi/404): Route không tồn tại trả 404 JSON chuẩn `{ ok: false, error }`, lỗi 500 giả lập không lộ stack trace hay chi tiết nội bộ.
-  + Test: `tests/securityGroup2.test.js` (6 tests mới). Mốc test: 170 -> 176 tests.
+  + Mục 7 (SQL Injection), Mục 8 (XSS Static Analysis), Mục 9 (Header bảo mật), Mục 10 (Lỗi/404 JSON).
+  + Test: `tests/securityGroup2.test.js` (6 tests).
+- **Nhóm 2 & 3 (Mục 11-13) – Mức Trung & Nhỏ (ĐÃ XONG - 7 tests passed):**
+  + Mục 11 (Độ bền lưu trữ & Graceful Shutdown), Mục 12 (Quyền riêng tư & EXIF), Mục 13 (scripts/seedClear.js).
+  + Test: `tests/securityGroup3.test.js` (7 tests).
+- **Nâng cấp P9 Mục 5 (Cấu hình TRUST_PROXY loopback tunnel & CORS):**
+  + Ngoài production tự động nhận `'loopback'` (Express chỉ tin `X-Forwarded-*` khi kết nối trực tiếp đến từ 127.0.0.1/::1, tức tunnel chạy local), không cần đặt thêm biến; production mặc định `false`.
+  + CORS và limiter dùng `req.hostname`, `req.ip` của Express.
+  + Test: `tests/securityTrustProxy.test.js` (10 tests mới). Mốc test: 183 -> 193 tests.
+- **Tài liệu:** `docs/SECURITY_REVIEW.md`, `docs/MOBILE_TEST.md` (hợp nhất đầy đủ checklist 15 tình huống), `.env.example`.
 
 ### P1: Schema DB, Repository, Dữ liệu mẫu (Seed 20 điểm)
 - `src/db/connection.js`, `scripts/migrate.js`, `scripts/seed.js`

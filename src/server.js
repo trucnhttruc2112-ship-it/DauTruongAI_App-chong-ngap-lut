@@ -50,21 +50,15 @@ app.use(
       return callback(null, { origin: true, credentials: true });
     }
 
-    // (c) Host của Origin trùng với host của yêu cầu (Host / X-Forwarded-Host khi đi qua tunnel)
+    // (c) Host của Origin trùng với host của yêu cầu (tôn trọng cấu hình trust proxy của Express qua req.hostname)
     try {
       const originUrl = new URL(origin);
       const originHost = (originUrl.host || '').replace(/:(80|443)$/, '');
 
-      const rawForwardedHost = req.headers['x-forwarded-host'];
-      const forwardedHost = Array.isArray(rawForwardedHost)
-        ? rawForwardedHost[0]?.split(',')[0]?.trim()
-        : typeof rawForwardedHost === 'string'
-        ? rawForwardedHost.split(',')[0]?.trim()
-        : null;
+      const reqHostname = (req.hostname || '').replace(/:(80|443)$/, '');
+      const reqHostHeader = (req.get('host') || '').replace(/:(80|443)$/, '');
 
-      const reqHost = (forwardedHost || req.get('host') || req.headers.host || '').replace(/:(80|443)$/, '');
-
-      if (reqHost && originHost === reqHost) {
+      if (originHost && (originHost === reqHostname || originHost === reqHostHeader || originUrl.hostname === req.hostname)) {
         return callback(null, { origin: true, credentials: true });
       }
     } catch {

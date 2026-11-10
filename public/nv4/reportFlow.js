@@ -73,6 +73,10 @@ export function buildReportPayload({ coords, imageSource = 'camera', deviceId, c
   };
 }
 
+export function getPrivacyNoticeText() {
+  return 'Ứng dụng sẽ dùng vị trí và ảnh bạn chụp để ghi nhận điểm ngập';
+}
+
 export class ReportFlow {
   /**
    * @param {Object} options
@@ -501,6 +505,16 @@ export class ReportFlow {
     }
     btnSubmit.onclick = () => this.handleSubmitReport();
     btnGroup.appendChild(btnSubmit);
+
+    // Thông báo quyền riêng tư trước nút gửi
+    const privacyNotice = this.createEl('p', 'nv4-privacy-notice');
+    privacyNotice.textContent = getPrivacyNoticeText();
+    privacyNotice.style.fontSize = '0.85rem';
+    privacyNotice.style.color = '#64748b';
+    privacyNotice.style.marginTop = '10px';
+    privacyNotice.style.marginBottom = '6px';
+    privacyNotice.style.lineHeight = '1.4';
+    body.appendChild(privacyNotice);
 
     body.appendChild(btnGroup);
   }
