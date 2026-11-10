@@ -1,0 +1,31 @@
+{
+  "_ghi_chu": "DỮ LIỆU MẪU giữ chỗ cho schema chung. Chưa có tọa độ/địa điểm thật - chờ NV4 (API) và NV6 (dữ liệu thực tế). Không tự bịa tọa độ.",
+  "points": [
+    {
+      "id": "mau-001",
+      "duong": "(chờ NV6 cung cấp tên đường)",
+      "phuong": "(chờ NV6)",
+      "lat": null,
+      "lng": null,
+      "muc_ngap": null,
+      "nguyen_nhan": null,
+      "gio_bao": null,
+      "anh": null,
+      "so_lan_ngap": null,
+      "trang_thai": "chua_xac_minh"
+    },
+    {
+      "id": "mau-002",
+      "duong": "(chờ NV6 cung cấp tên đường)",
+      "phuong": "(chờ NV6)",
+      "lat": null,
+      "lng": null,
+      "muc_ngap": null,
+      "nguyen_nhan": null,
+      "gio_bao": null,
+      "anh": null,
+      "so_lan_ngap": null,
+      "trang_thai": "chua_xac_minh"
+    }
+  ]
+}
