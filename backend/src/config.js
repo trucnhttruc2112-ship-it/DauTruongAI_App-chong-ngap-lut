@@ -25,7 +25,7 @@ export function readConfig(env = process.env) {
   return {
     port: integer('PORT', 3001, 65535),
     apiKey: env.GEMINI_API_KEY?.trim() || '',
-    model: env.GEMINI_MODEL?.trim() || 'gemini-3.8-flash',
+    model: env.GEMINI_MODEL?.trim() || 'gemini-3.5-flash-lite',
     mock: mock === 'true',
     timeoutMs: integer('GEMINI_TIMEOUT_MS', 30000, 120000),
     allowedOrigins: [...new Set(allowedOrigins)],

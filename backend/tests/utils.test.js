@@ -11,6 +11,7 @@ test('configuration defaults, strict booleans, ports and exact origins', () => {
   assert.equal(readConfig({}).mock, false);
   assert.equal(readConfig({}).port, 3001);
   assert.equal(readConfig({}).apiKey, '');
+  assert.equal(readConfig({}).model, 'gemini-3.5-flash-lite');
   const config = readConfig({
     MOCK_GEMINI: ' TRUE ', GEMINI_MODEL: 'custom-model', GEMINI_API_KEY: ' test-key ',
     PORT: '4000', GEMINI_TIMEOUT_MS: '5000',
