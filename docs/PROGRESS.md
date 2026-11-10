@@ -2,13 +2,13 @@
 
 ## Hiện trạng tổng quan
 - **Prompt đã hoàn thành:** P1, P2, P3, P5, P4, P6, P7, Tích hợp NV3, P9 (Nhóm 1 - Mức Cao).
-- **Tổng số test hiện tại:** 170 passed / 0 failed (16 test files).
+- **Tổng số test hiện tại:** 176 passed / 0 failed (17 test files).
 - **Benchmark 1000 điểm:**
   + GET `/api/flood-points.geojson`: ~77 ms (< 200 ms: ĐẠT)
   + GET `/api/flood-prone`: ~17 ms (< 200 ms: ĐẠT)
   + ETag 304: ĐẠT
 - **Kịch bản E2E:** 6/6 bước PASS (`npm run e2e`).
-- **Prompt tiếp theo:** P9 (Nhóm 2 - Mức Trung & Nhóm 3 - Mức Nhỏ).
+- **Prompt tiếp theo:** P9 (Mục 11, 12, 13 còn lại của Nhóm 2 & 3).
 
 ---
 
@@ -16,13 +16,14 @@
 
 ### P9: Rà soát Bảo Mật & Độ Bền (Đang thực hiện)
 - **Nhóm 1 – Mức Cao (ĐÃ XONG - 12 tests passed):**
-  + Upload: Magic bytes, giới hạn 50M pixel Sharp (`limitInputPixels`), tên UUID random, chống path traversal khi lưu ảnh, `/uploads` chỉ phục vụ ảnh (`.jpg`, `.jpeg`, `.png`, `.webp`), chặn directory listing & nosniff.
-  + Static: Chặn truy cập nhạy cảm (`.env`, `.sqlite`, file ẩn, path traversal `..` trả về 403), `/integration` chỉ mở khi `NODE_ENV !== 'production'` (404 khi production).
-  + Chống lạm dụng: Bổ sung `confirmIpLimiter` (10 request/phút/IP) chống spam xác nhận xóa điểm ngập.
-  + Cấu hình Production: Cấm cơ chế giả lập; từ chối khởi động nếu `AI_MODE=mock` hoặc `DATA_MODE=demo` trên production trừ khi có `ALLOW_DEMO_IN_PROD=true`.
-  + Trust Proxy: Đọc từ biến `TRUST_PROXY` (mặc định tắt `false`).
-  + AI Remote: Kiểm tra protocol `http/https` chống SSRF, giới hạn dung lượng phản hồi từ NV3 (1MB) tránh tràn bộ nhớ.
-  + File test: `tests/securityGroup1.test.js` (12 tests mới). Mốc test: 158 -> 170 tests.
+  + Upload, Static, Chống lạm dụng IP, Cấu hình Production, Trust Proxy, AI Remote.
+  + Test: `tests/securityGroup1.test.js` (12 tests).
+- **Nhóm 2 (Mục 7-10) – Mức Trung (ĐÃ XONG - 6 tests passed):**
+  + Mục 7 (SQL Injection): Tham số hóa an toàn trên toàn bộ query lọc và insert, không drop bảng khi nhận payload độc hại.
+  + Mục 8 (XSS Static Analysis): Quét tĩnh `public/nv4` và `integration/`, không có gán HTML nguy hiểm (chỉ cho phép innerHTML rỗng).
+  + Mục 9 (Header bảo mật): `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: SAMEORIGIN`.
+  + Mục 10 (Lỗi/404): Route không tồn tại trả 404 JSON chuẩn `{ ok: false, error }`, lỗi 500 giả lập không lộ stack trace hay chi tiết nội bộ.
+  + Test: `tests/securityGroup2.test.js` (6 tests mới). Mốc test: 170 -> 176 tests.
 
 ### P1: Schema DB, Repository, Dữ liệu mẫu (Seed 20 điểm)
 - `src/db/connection.js`, `scripts/migrate.js`, `scripts/seed.js`
