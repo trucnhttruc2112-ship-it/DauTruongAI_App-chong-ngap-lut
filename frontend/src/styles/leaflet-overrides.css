@@ -1,0 +1,82 @@
+/* ===================== Leaflet ===================== */
+/* Bản đồ tối chỉ dùng khi có lớp phù hợp; ở đây giữ nền đường phố sáng trong khung tối,
+   KHÔNG đảo màu bản đồ bằng CSS để tránh đổi sai màu nguy cơ (mục 4.4). */
+
+.flood-map { position: relative; width: 100%; height: 100%; isolation: isolate; z-index: 0; }
+.mini-map { isolation: isolate; z-index: 0; position: relative; }
+.flood-map__canvas { position: absolute; inset: 0; background: #e5ebf1; font-family: var(--font-sans); }
+.flood-map__canvas:focus-visible { outline: 3px solid var(--action); outline-offset: -3px; }
+
+.leaflet-container { font-family: var(--font-sans); font-size: var(--fs-secondary); }
+.leaflet-control-attribution {
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.85) !important;
+  color: #334155 !important;
+}
+.leaflet-control-attribution a { color: #1D4ED8 !important; }
+
+/* ---------- Marker điểm ngập ---------- */
+.fm-marker {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+  transition: transform var(--t-mid) var(--ease);
+}
+.fm-marker--light    { background: #CA8A04; }
+.fm-marker--moderate { background: #EA580C; }
+.fm-marker--severe   { background: #DC2626; }
+.fm-marker--unknown  { background: #64748B; }
+.fm-marker.is-selected {
+  transform: scale(1.22);
+  box-shadow: 0 0 0 4px #1D4ED8, 0 2px 8px rgba(15, 23, 42, 0.4);
+}
+
+.fm-cluster {
+  display: flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: #ffffff;
+  border: 4px solid #64748B;
+  color: #172B4D; font-weight: 600; font-size: 15px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+}
+.fm-cluster--light    { border-color: #CA8A04; }
+.fm-cluster--moderate { border-color: #EA580C; }
+.fm-cluster--severe   { border-color: #DC2626; }
+
+/* Thường ngập: biểu tượng lịch sử, viền đứt, nền trắng – khác hẳn điểm hiện tại */
+.fm-history {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 6px;
+  background: #ffffff; color: #0F766E;
+  border: 2px dashed #0F766E;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+}
+
+.fm-label.leaflet-tooltip {
+  background: #ffffff; color: #172B4D;
+  border: 1px solid #CBD5E1; border-radius: 6px;
+  padding: 2px 8px;
+  font-family: var(--font-sans); font-size: 13px; font-weight: 500;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+  white-space: nowrap;
+}
+.fm-label.leaflet-tooltip::before { display: none; }
+
+/* ---------- Popup ---------- */
+.leaflet-popup-content-wrapper { border-radius: var(--radius-md); }
+.leaflet-popup-content { margin: 12px 14px; font-family: var(--font-sans); }
+.fm-popup { display: flex; flex-direction: column; gap: 2px; font-size: 14px; color: #172B4D; line-height: 1.45; }
+.fm-popup p { margin: 0 !important; }
+.fm-popup__kicker { font-size: 12px; font-weight: 600; color: #0F766E; text-transform: uppercase; letter-spacing: 0.02em; }
+.fm-popup__title { font-weight: 600; font-size: 15px; }
+.fm-popup__src { color: #52637A; font-size: 13px; }
+.fm-popup__note { color: #52637A; font-size: 13px; font-style: italic; }
+
+/* Chọn vị trí trên bản đồ (luồng báo ngập) */
+.fm-pick {
+  display: flex; align-items: flex-end; justify-content: center;
+  width: 40px; height: 48px;
+  color: #1D4ED8;
+  filter: drop-shadow(0 2px 3px rgba(15, 23, 42, 0.4));
+}
