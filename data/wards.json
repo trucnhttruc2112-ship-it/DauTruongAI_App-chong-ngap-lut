@@ -1,0 +1,134 @@
+{
+  "_note": "Danh sách phường/xã sau sắp xếp (NQ 1662/NQ-UBTVQH15, hiệu lực 1/7/2025; NQ 237/NQ-UBTVQH16, hiệu lực 30/4/2026). Toạ độ là tâm gần đúng để gán phường tạm thời, chưa phải ranh giới thật. NV6 – 10/11/2026",
+  "province": "Thành phố Đồng Nai",
+  "wards": [
+    {
+      "id": "tran-bien",
+      "name": "Phường Trấn Biên",
+      "lat": 10.95361,
+      "lng": 106.82222,
+      "gom": "Bửu Long, Quang Vinh, Trung Dũng, Thống Nhất, Hiệp Hòa, An Bình (Quyết Thắng, Thanh Bình đã nhập vào Trung Dũng; Hòa Bình nhập vào Quang Vinh từ 1/1/2025)",
+      "nguonToaDo": "Wikipedia (Trấn Biên)"
+    },
+    {
+      "id": "bien-hoa",
+      "name": "Phường Biên Hòa",
+      "gom": "Tân Hạnh, Hóa An, Bửu Hòa, Tân Vạn",
+      "nguonToaDo": "chưa có toạ độ tin cậy, không dùng để tự gán phường"
+    },
+    {
+      "id": "tam-hiep",
+      "name": "Phường Tam Hiệp",
+      "lat": 10.94972,
+      "lng": 106.8575,
+      "gom": "Tân Hiệp, Tân Mai, Bình Đa, Tam Hiệp (Tam Hòa đã nhập vào Bình Đa)",
+      "nguonToaDo": "Wikipedia (Tam Hiệp, Đồng Nai)"
+    },
+    {
+      "id": "long-binh",
+      "name": "Phường Long Bình",
+      "lat": 10.94583,
+      "lng": 106.8775,
+      "gom": "Long Bình, Hố Nai (cũ), Tân Biên",
+      "nguonToaDo": "Wikipedia (Long Bình, Đồng Nai)"
+    },
+    {
+      "id": "trang-dai",
+      "name": "Phường Trảng Dài",
+      "lat": 10.98694,
+      "lng": 106.8675,
+      "gom": "Trảng Dài, xã Thiện Tân",
+      "nguonToaDo": "Wikipedia (tâm phường Trảng Dài cũ, chưa tính Thiện Tân)"
+    },
+    {
+      "id": "ho-nai",
+      "name": "Phường Hố Nai",
+      "lat": 10.96,
+      "lng": 106.93,
+      "gom": "Tân Hòa, xã Hố Nai 3",
+      "nguonToaDo": "ước lượng (toạ độ xã Hố Nai 3 cũ trong file NV4), cần kiểm tra"
+    },
+    {
+      "id": "long-hung",
+      "name": "Phường Long Hưng",
+      "lat": 10.87389,
+      "lng": 106.8575,
+      "gom": "Long Bình Tân, An Hòa, xã Long Hưng",
+      "nguonToaDo": "Wikipedia (tâm xã Long Hưng cũ), cần kiểm tra"
+    },
+    {
+      "id": "phuoc-tan",
+      "name": "Phường Phước Tân",
+      "lat": 10.89194,
+      "lng": 106.90528,
+      "gom": "giữ nguyên",
+      "nguonToaDo": "Wikipedia (Phước Tân, Đồng Nai)"
+    },
+    {
+      "id": "tam-phuoc",
+      "name": "Phường Tam Phước",
+      "lat": 10.86222,
+      "lng": 106.92056,
+      "gom": "giữ nguyên",
+      "nguonToaDo": "Wikipedia (Tam Phước, Đồng Nai)"
+    },
+    {
+      "id": "tan-trieu",
+      "name": "Phường Tân Triều",
+      "lat": 10.97028,
+      "lng": 106.84417,
+      "gom": "Tân Phong, xã Tân Bình, Bình Lợi, Thạnh Phú",
+      "nguonToaDo": "Wikipedia (Tân Triều, Đồng Nai), cần kiểm tra"
+    },
+    {
+      "id": "long-thanh",
+      "name": "Phường Long Thành",
+      "lat": 10.783,
+      "lng": 106.955,
+      "gom": "TT Long Thành, xã Lộc An, Bình Sơn, Long An; lên phường từ 30/4/2026",
+      "nguonToaDo": "ước lượng (toạ độ TT Long Thành cũ trong file NV4)"
+    },
+    {
+      "id": "trang-bom",
+      "name": "Phường Trảng Bom",
+      "lat": 10.95306,
+      "lng": 107.00361,
+      "gom": "TT Trảng Bom, xã Sông Trầu, Quảng Tiến, Giang Điền; lên phường từ 30/4/2026",
+      "nguonToaDo": "Wikipedia (Trảng Bom)"
+    },
+    {
+      "id": "nhon-trach",
+      "name": "Phường Nhơn Trạch",
+      "lat": 10.73944,
+      "lng": 106.94528,
+      "gom": "TT Hiệp Phước, xã Phú Hội và các xã khác; lên phường từ 30/4/2026",
+      "nguonToaDo": "Wikipedia (Nhơn Trạch, Đồng Nai)"
+    },
+    {
+      "id": "an-phuoc",
+      "name": "Xã An Phước",
+      "lat": 10.82,
+      "lng": 106.94,
+      "gom": "Tam An, An Phước",
+      "nguonToaDo": "ước lượng (toạ độ trong file NV4 cũ)"
+    }
+  ],
+  "doiMaCu": {
+    "long-binh": "long-binh",
+    "trang-dai": "trang-dai",
+    "tam-hiep": "tam-hiep",
+    "phuoc-tan": "phuoc-tan",
+    "an-phuoc": "an-phuoc",
+    "ho-nai": "long-binh",
+    "an-binh": "tran-bien",
+    "quyet-thang": "tran-bien",
+    "tan-phong": "tan-trieu",
+    "ho-nai-3": "ho-nai",
+    "tt-long-thanh": "long-thanh",
+    "loc-an": "long-thanh",
+    "tt-trang-bom": "trang-bom",
+    "tt-hiep-phuoc": "nhon-trach",
+    "phu-hoi": "nhon-trach"
+  },
+  "_doiMaCu_note": "Mã cũ trong file NV4 -> mã mới. Chú ý: 'ho-nai' cũ (phường Hố Nai cũ) nay thuộc Long Bình; 'ho-nai' mới là phường Hố Nai (Tân Hòa + Hố Nai 3)."
+}

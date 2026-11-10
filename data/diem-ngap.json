@@ -2,9 +2,9 @@
   {
     "id": "diem-001",
     "duong": "Vòng xoay Cổng 11 (QL51)",
-    "phuong": "Long Bình",
-    "lat": 10.9040,
-    "lng": 106.8700,
+    "phuong": "Phước Tân",
+    "lat": 10.904,
+    "lng": 106.87,
     "muc_ngap": "high",
     "nguyen_nhan": "mua_lon",
     "loai": "hay_ngap",
@@ -13,8 +13,10 @@
     "anh": null,
     "so_lan_ngap": 3,
     "trang_thai": "chua_xu_ly",
-    "nguon": "Tuổi Trẻ 28/05/2026, 01/06/2026, 13/06/2020",
-    "can_kiem_tra_toa_do": true
+    "nguon": "Tuổi Trẻ 28/05/2026, 01/06/2026, 13/06/2020; Báo Pháp luật 10/09/2026",
+    "can_kiem_tra_toa_do": true,
+    "ma_phuong": "phuoc-tan",
+    "ghi_chu_phuong": "Báo Pháp luật 10/09/2026 ghi nút giao Cổng 11 thuộc P. Phước Tân"
   },
   {
     "id": "diem-002",
@@ -31,14 +33,15 @@
     "so_lan_ngap": 2,
     "trang_thai": "dang_xu_ly",
     "nguon": "Tuổi Trẻ 05/08/2025, 04/11/2026",
-    "can_kiem_tra_toa_do": true
+    "can_kiem_tra_toa_do": true,
+    "ma_phuong": "trang-dai"
   },
   {
     "id": "diem-003",
     "duong": "Đồng Khởi (đoạn Tam Hiệp)",
     "phuong": "Tam Hiệp",
     "lat": 10.9535,
-    "lng": 106.8480,
+    "lng": 106.848,
     "muc_ngap": "medium",
     "nguyen_nhan": "mua_lon",
     "loai": "hay_ngap",
@@ -48,14 +51,15 @@
     "so_lan_ngap": 1,
     "trang_thai": "chua_xu_ly",
     "nguon": "SGGP 22/09/2026",
-    "can_kiem_tra_toa_do": true
+    "can_kiem_tra_toa_do": true,
+    "ma_phuong": "tam-hiep"
   },
   {
     "id": "diem-004",
     "duong": "Đường Bùi Văn Hòa",
     "phuong": "Long Bình",
-    "lat": 10.9270,
-    "lng": 106.8680,
+    "lat": 10.927,
+    "lng": 106.868,
     "muc_ngap": "medium",
     "nguyen_nhan": "mua_lon",
     "loai": "hay_ngap",
@@ -65,14 +69,16 @@
     "so_lan_ngap": 2,
     "trang_thai": "da_xong",
     "nguon": "SGGP 22/09/2026; Tuổi Trẻ 01/06/2026",
-    "can_kiem_tra_toa_do": true
+    "can_kiem_tra_toa_do": true,
+    "ma_phuong": "long-binh",
+    "ghi_chu_phuong": "bài báo không ghi phường, gán theo toạ độ"
   },
   {
     "id": "diem-005",
     "duong": "Khu vực chợ Trảng Dài",
     "phuong": "Trảng Dài",
-    "lat": 10.9770,
-    "lng": 106.8610,
+    "lat": 10.977,
+    "lng": 106.861,
     "muc_ngap": "low",
     "nguyen_nhan": "mua_lon",
     "loai": "hay_ngap",
@@ -82,14 +88,15 @@
     "so_lan_ngap": 1,
     "trang_thai": "da_xong",
     "nguon": "SGGP 22/09/2026",
-    "can_kiem_tra_toa_do": true
+    "can_kiem_tra_toa_do": true,
+    "ma_phuong": "trang-dai"
   },
   {
     "id": "diem-006",
     "duong": "Đường Nguyễn Ái Quốc",
-    "phuong": "Trấn Biên",
-    "lat": 10.9520,
-    "lng": 106.8440,
+    "phuong": "Tam Hiệp",
+    "lat": 10.952,
+    "lng": 106.844,
     "muc_ngap": "low",
     "nguyen_nhan": "mua_lon",
     "loai": "hay_ngap",
@@ -98,15 +105,17 @@
     "anh": null,
     "so_lan_ngap": 1,
     "trang_thai": "da_xong",
-    "nguon": "Tuổi Trẻ 05/08/2025 (chưa rõ phường)",
-    "can_kiem_tra_toa_do": true
+    "nguon": "Tuổi Trẻ 05/08/2025",
+    "can_kiem_tra_toa_do": true,
+    "ma_phuong": "tam-hiep",
+    "ghi_chu_phuong": "bài báo không ghi phường, gán theo toạ độ"
   },
   {
     "id": "diem-007",
     "duong": "Đường Bùi Trọng Nghĩa",
     "phuong": "Trảng Dài",
-    "lat": 10.9650,
-    "lng": 106.8700,
+    "lat": 10.965,
+    "lng": 106.87,
     "muc_ngap": "low",
     "nguyen_nhan": "mua_lon",
     "loai": "hay_ngap",
@@ -115,15 +124,17 @@
     "anh": null,
     "so_lan_ngap": 1,
     "trang_thai": "da_xong",
-    "nguon": "Tuổi Trẻ 05/08/2025 (chưa rõ phường)",
-    "can_kiem_tra_toa_do": true
+    "nguon": "Tuổi Trẻ 05/08/2025",
+    "can_kiem_tra_toa_do": true,
+    "ma_phuong": "trang-dai",
+    "ghi_chu_phuong": "bài báo không ghi phường"
   },
   {
     "id": "diem-008",
     "duong": "Các hẻm khu vực Hố Nai",
-    "phuong": "Hố Nai",
-    "lat": 10.9570,
-    "lng": 106.9080,
+    "phuong": "Long Bình",
+    "lat": 10.957,
+    "lng": 106.908,
     "muc_ngap": "medium",
     "nguyen_nhan": "nuoc_tu_hem",
     "loai": "hay_ngap",
@@ -133,6 +144,8 @@
     "so_lan_ngap": 1,
     "trang_thai": "chua_xu_ly",
     "nguon": "SGGP 22/09/2026",
-    "can_kiem_tra_toa_do": true
+    "can_kiem_tra_toa_do": true,
+    "ma_phuong": "long-binh",
+    "ghi_chu_phuong": "bài báo chỉ ghi \"khu vực Hố Nai\"; nếu điểm ở Tân Hòa/Hố Nai 3 cũ thì đổi sang ho-nai"
   }
 ]
