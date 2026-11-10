@@ -137,15 +137,15 @@ async function runE2EScenario() {
     if (!hasFailure) {
       console.log('🎉 KẾT QUẢ E2E: TẤT CẢ CÁC BƯỚC ĐẠT (PASS)');
       console.log('-----------------------------------------------------\n');
-      process.exitCode = 0;
+      process.exit(0);
     } else {
       console.error('❌ KẾT QUẢ E2E: CÓ BƯỚC THẤT BẠI (FAIL)');
       console.log('-----------------------------------------------------\n');
-      process.exitCode = 1;
+      process.exit(1);
     }
   } catch (err) {
     console.error('💥 [E2E] Ngoại lệ ngoài ý muốn:', err);
-    process.exitCode = 1;
+    process.exit(1);
   } finally {
     closeDb();
   }

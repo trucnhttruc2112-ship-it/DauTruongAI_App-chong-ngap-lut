@@ -9,8 +9,10 @@
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed.js",
     "seed:clear": "node scripts/seedClear.js",
+    "demo:reset": "node scripts/demo-reset.js",
     "bench": "node scripts/benchmark.js",
     "e2e": "node scripts/e2e.js",
+    "verify": "node scripts/verify.js",
     "test": "vitest run"
   },
   "dependencies": {

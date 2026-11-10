@@ -1,18 +1,31 @@
 # Tiến Độ Triển Khai Module NV4 (Báo Cáo Ngập & Xác Thực)
 
 ## Hiện trạng tổng quan
-- **Prompt đã hoàn thành:** P1, P2, P3, P5, P4, P6, P7, Tích hợp NV3, P9 (Hoàn thành toàn bộ 13 mục Bảo mật & Độ bền + Nâng cấp TRUST_PROXY loopback tunnel an toàn).
-- **Tổng số test hiện tại:** 193 passed / 0 failed (19 test files).
+- **Prompt đã hoàn thành:** P1, P2, P3, P5, P4, P6, P7, Tích hợp NV3, P9 (Toàn diện 13/13 mục), P8 (Toàn bộ 3 nhóm Demo, Verify, Handoff & Test Cases).
+- **Tổng số test hiện tại:** 198 passed / 0 failed (20 test files).
 - **Benchmark 1000 điểm:**
   + GET `/api/flood-points.geojson`: ~77 ms (< 200 ms: ĐẠT)
   + GET `/api/flood-prone`: ~17 ms (< 200 ms: ĐẠT)
   + ETag 304: ĐẠT
 - **Kịch bản E2E:** 6/6 bước PASS (`npm run e2e`).
-- **Prompt tiếp theo:** P8 (Kiểm thử toàn diện & tài liệu bàn giao).
+- **Kiểm tra tổng thể (`npm run verify`):** 6/6 mục PASS (npm test, git .env, uploads sạch, AI/DATA mode, 9 API endpoints trên server tạm, npm run e2e). Báo cáo tại `docs/VERIFY_REPORT.md`.
+- **Trạng thái:** HOÀN THÀNH TOÀN DIỆN MODULE NV4. SẴN SÀNG BÀN GIAO.
 
 ---
 
 ## Chi tiết các prompt
+
+### P8: Chuẩn bị Demo & Bàn giao NV4 (ĐÃ HOÀN THÀNH TOÀN BỘ 3 NHÓM)
+- **Nhóm 1 – Demo & Benchmark (ĐÃ XONG - 5 tests passed):**
+  + `scripts/demo-reset.js` & lệnh `npm run demo:reset`: Thiết lập 12 điểm ngập chuẩn (6 active đủ mức low/med/high, 3 pending, 3 resolved, >=4 prone) với mốc thời gian tương đối (10 - 90 phút trước) không bị job 6h tự động đóng điểm; từ chối khi `DATA_MODE=real`; idempotency không nhân đôi khi chạy lại; báo lỗi khi DB chưa migrate.
+  + `scripts/benchmark.js`: Đã sửa sang dùng DB tạm riêng biệt (`./data/benchmark_temp.sqlite`), dọn sạch và xóa file sau khi chạy, hoàn toàn không đụng DB dev.
+  + Test: `tests/demoReset.test.js` (5 tests mới). Mốc test: 193 -> 198 tests.
+- **Nhóm 2 – Kiểm tra tổng & Gói phụ thuộc (ĐÃ XONG):**
+  + `scripts/verify.js` & lệnh `npm run verify`: Tự động kiểm tra 6 tiêu chí (npm test, .env ngoài git, thư mục uploads sạch, AI_MODE/DATA_MODE hợp lệ, 9 endpoints API trên server port ngẫu nhiên với DB tạm, npm run e2e). Báo cáo kết quả tại `docs/VERIFY_REPORT.md`.
+  + `package.json`: Phân định chuẩn xác dependencies phục vụ runtime và devDependencies cho test (vitest, supertest). Server chạy độc lập không phụ thuộc thư viện dev.
+- **Nhóm 3 – Tài liệu bàn giao & Test Cases (ĐÃ XONG):**
+  + `docs/NV4_HANDOFF.md`: Kiến trúc phân tầng, sơ đồ mermaid luồng báo cáo, bảng luật nghiệp vụ từ `rules.js`, cách chạy, cách đổi AI_MODE sang remote (cổng 3001), cách chuyển DATA_MODE=real (seed:clear), các giới hạn đã biết và checklist trước khi triển khai production.
+  + `docs/TEST_CASES.csv`: Danh mục 57 test cases chi tiết (id, mô tả, đầu vào, kết quả mong đợi, kết quả thực tế, đạt/không) bao gồm unit test, integration test, security test và checklist 15 tình huống mobile test cho NV6 sử dụng.
 
 ### P9: Rà soát Bảo Mật & Độ Bền (ĐÃ HOÀN THÀNH TOÀN DIỆN 13/13 MỤC)
 - **Nhóm 1 – Mức Cao (ĐÃ XONG - 12 tests passed):**

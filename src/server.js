@@ -252,6 +252,9 @@ if (process.env.NODE_ENV !== 'test') {
       console.error('Lỗi khi chạy background job quét hết hạn điểm ngập:', err.message);
     }
   }, expireIntervalMs);
+  if (expireJobTimer.unref) {
+    expireJobTimer.unref();
+  }
 }
 
 export function shutdownServer(serverInstance = null) {

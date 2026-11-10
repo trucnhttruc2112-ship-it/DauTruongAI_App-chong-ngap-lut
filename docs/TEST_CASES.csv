@@ -1,0 +1,58 @@
+id,mô tả,đầu vào,kết quả mong đợi,kết quả thực tế,đạt/không
+TC_GEO_01,Tính khoảng cách Haversine giữa 2 tọa độ,Tọa độ Biên Hòa A và B cách nhau 50m,Khoảng cách tính toán xấp xỉ 50m (sai số < 1m),Khoảng cách chính xác 50.0m,ĐẠT
+TC_GEO_02,Kiểm tra tọa độ nằm trong Bounding Box Đồng Nai,Lat 10.95 và Lng 106.82,Trả về true,Trả về true,ĐẠT
+TC_GEO_03,Kiểm tra tọa độ nằm ngoài Bounding Box Đồng Nai,Lat 21.02 và Lng 105.83 (Hà Nội),Trả về false,Trả về false,ĐẠT
+TC_VAL_01,Kiểm tra độ chính xác GPS accuracyM hợp lệ,accuracyM = 15m (<= 100m),Báo cáo hợp lệ ok=true,ok=true,ĐẠT
+TC_VAL_02,Từ chối báo cáo có GPS accuracyM quá lớn,accuracyM = 150m (> 100m),Trả về mã lỗi GPS_TOO_INACCURATE,Lỗi GPS_TOO_INACCURATE,ĐẠT
+TC_VAL_03,Từ chối ảnh chụp quá thời gian cho phép,Ảnh chụp cách thời điểm gửi 10 phút (> 5 phút),Trả về mã lỗi REPORT_TOO_OLD,Lỗi REPORT_TOO_OLD,ĐẠT
+TC_VAL_04,Từ chối ảnh có thời gian tương lai quá mức,Ảnh chụp tương lai lệch 5 phút (> 1 phút),Trả về mã lỗi REPORT_IN_FUTURE,Lỗi REPORT_IN_FUTURE,ĐẠT
+TC_DED_01,Gộp báo cáo trùng vị trí trong bán kính 50m và 6h,Báo cáo 2 cách báo cáo 1 khoảng 30m trong 15 phút,Gộp vào điểm ngập hiện có tăng reportCount,Gộp thành công vào điểm hiện có,ĐẠT
+TC_DED_02,Tạo điểm độc lập khi cách xa hơn 50m,Báo cáo 2 cách báo cáo 1 khoảng 80m,Tạo điểm ngập mới riêng biệt,Tạo điểm ngập mới,ĐẠT
+TC_LIF_01,AI phát hiện ngập độ tin cậy cao -> điểm active ngay,AI flooded confidence 0.85,Điểm ngập chuyển ngay sang trạng thái active,Trạng thái active,ĐẠT
+TC_LIF_02,AI phát hiện không ngập -> điểm rejected,AI not_flooded confidence 0.90,Điểm ngập chuyển sang trạng thái rejected,Trạng thái rejected,ĐẠT
+TC_LIF_03,AI không chắc chắn (uncertain) -> điểm pending,AI uncertain confidence 0.40,Điểm ngập ở trạng thái pending chờ xác minh,Trạng thái pending,ĐẠT
+TC_LIF_04,Hai báo cáo từ 2 thiết bị khác nhau nâng pending lên active,2 báo cáo cách nhau 10m từ dev_1 và dev_2,Điểm pending được thăng hạng lên active,Trạng thái chuyển thành active,ĐẠT
+TC_LIF_05,Tự động hết hạn (expire) sau 6h không có cập nhật,Điểm active có lastUpdatedAt cách 7 giờ,Chuyển sang expired và đóng flood_event,Trạng thái expired sự kiện đóng,ĐẠT
+TC_LIF_06,Hai thiết bị khác nhau xác nhận hết ngập -> resolved,2 xác nhận ended từ dev_1 và dev_2,Chuyển sang resolved và tính lại floodEventCount,Trạng thái resolved bộ đếm tăng 1,ĐẠT
+TC_CONF_01,Từ chối xác nhận khi người dùng ở quá xa,Người xác nhận cách điểm ngập 450m (> 300m),Trả về lỗi 422 CONFIRM_TOO_FAR,Lỗi CONFIRM_TOO_FAR,ĐẠT
+TC_CONF_02,Từ chối xác nhận trùng loại trên cùng thiết bị,dev_1 gửi xác nhận still lần thứ hai,Trả về lỗi 409 DUPLICATE_CONFIRMATION,Lỗi DUPLICATE_CONFIRMATION,ĐẠT
+TC_PRONE_01,Đánh dấu tuyến đường hay ngập (flood-prone),Điểm ngập có 3 sự kiện kết thúc trong 1 năm,isFloodProne = 1,isFloodProne = 1,ĐẠT
+TC_HASH_01,Chống gửi trùng lặp chính xác ảnh (SHA-256),Gửi lại đúng file ảnh đã có trong hệ thống,Trả về lỗi 409 DUPLICATE_IMAGE,Lỗi DUPLICATE_IMAGE,ĐẠT
+TC_HASH_02,Chống gửi ảnh gần trùng từ cùng thiết bị (dHash),Gửi ảnh crop nhẹ cùng thiết bị trong 24h,Trả về lỗi 409 DUPLICATE_IMAGE,Lỗi DUPLICATE_IMAGE,ĐẠT
+TC_AI_01,Chuẩn hóa dữ liệu trả về từ NV3 sang hợp đồng chuẩn,NV3 trả flooded severity=high,Hợp đồng AI chuẩn với cờ trust_flags hợp lệ,isFlood=true severity=high,ĐẠT
+TC_AI_02,AI Remote retry khi lỗi mạng hoặc 5xx,NV3 trả 500 ở lần 1 và 200 ở lần 2,Tự động thử lại lần 2 và ghi nhận kết quả,Thử lại thành công nhận kết quả,ĐẠT
+TC_AI_03,AI Remote không retry khi gặp lỗi 4xx,NV3 trả 400 Bad Request,Không thử lại trả cờ lỗi AI_HTTP_400,Không retry cờ AI_HTTP_400,ĐẠT
+TC_API_01,GET /api/flood-points.geojson chuẩn GeoJSON RFC 7946,Yêu cầu GeoJSON từ Leaflet,Trả về FeatureCollection tọa độ [lng lat] và ETag,FeatureCollection chuẩn [lng lat] ETag 304,ĐẠT
+TC_API_02,GET /api/flood-prone danh sách tuyến đường hay ngập,Yêu cầu danh sách prone gom cụm,Trả về danh sách cụm hay ngập kèm số sự kiện,Danh sách cụm kèm street và eventCount,ĐẠT
+TC_API_03,GET /api/wards/:wardId/flood-points lọc theo phường,Yêu cầu điểm ngập của wardId=long-binh,Chỉ trả về các điểm thuộc phường Long Bình,Chỉ trả về điểm phường Long Bình,ĐẠT
+TC_SEC_01,Chặn tải lên tệp tin giả mạo định dạng (magic bytes),Tệp script .js đổi tên thành .jpg,Trả về lỗi 400 INVALID_IMAGE_FILE,Lỗi INVALID_IMAGE_FILE,ĐẠT
+TC_SEC_02,Chống giải nén ảnh khổng lồ (decompression bomb),Ảnh có số pixel vượt quá 50 triệu pixel,Sharp từ chối với lỗi IMAGE_TOO_LARGE (400),Lỗi IMAGE_TOO_LARGE,ĐẠT
+TC_SEC_03,Chống rò rỉ file hệ thống và path traversal (.env .sqlite),Yêu cầu GET /.env hoặc GET /data/dongnai_flood.sqlite,Trả về mã lỗi 403 FORBIDDEN,Mã lỗi 403 FORBIDDEN,ĐẠT
+TC_SEC_04,Khóa thư mục /integration trên môi trường production,Yêu cầu /integration khi NODE_ENV=production,Trả về mã lỗi 404 NOT_FOUND,Mã lỗi 404 NOT_FOUND,ĐẠT
+TC_SEC_05,Từ chối khởi động production với AI_MODE=mock,NODE_ENV=production và AI_MODE=mock,Máy chủ ném ngoại lệ cấu hình từ chối khởi động,Ném ngoại lệ từ chối khởi động,ĐẠT
+TC_SEC_06,Chống SQL Injection qua tham số lọc và body,Payload OR 1=1 và DROP TABLE reports,Truy vấn an toàn CSDL nguyên vẹn không mất bảng,Bảng dữ liệu SQLite nguyên vẹn,ĐẠT
+TC_SEC_07,Chống tấn công XSS trên Frontend NV4,Quét tĩnh mã nguồn public/nv4 và integration/,Chỉ dùng textContent cấm gán HTML độc hại,Không có lỗi gán HTML,ĐẠT
+TC_SEC_08,Thiết lập đầy đủ tiêu đề bảo mật HTTP,Yêu cầu GET /api/health,Có đủ X-Content-Type-Options Referrer-Policy X-Frame-Options,Đủ 3 header bảo mật chuẩn,ĐẠT
+TC_SEC_09,Giấu stack trace khi máy chủ gặp lỗi 500,Header x-simulate-db-error gây lỗi 500,Trả JSON chuẩn không chứa stack hay đường dẫn máy chủ,JSON chuẩn không lộ chi tiết nội bộ,ĐẠT
+TC_SEC_10,Tước bỏ metadata EXIF và GPS khỏi ảnh đã lưu,Ảnh chụp có chứa EXIF GPS của máy ảnh,Ảnh JPEG sau nén mất hoàn toàn metadata EXIF,metadata.exif là undefined,ĐẠT
+TC_SEC_11,Xử lý hết bộ nhớ lưu trữ ENOSPC an toàn,Giả lập lỗi ENOSPC khi ghi file ảnh,Trả về mã lỗi 507 STORAGE_FULL và dọn file dở dang,Mã lỗi 507 STORAGE_FULL,ĐẠT
+TC_SEC_12,Bảo vệ CLI seedClear khi DB chưa migrate,Chạy seedClear trên DB trống,In thông báo tiếng Việt thoát mã lỗi 1 không văng stack,In tiếng Việt thoát mã lỗi 1,ĐẠT
+TC_SEC_13,Hỗ trợ Tunnel an toàn với TRUST_PROXY loopback,Chạy qua tunnel Cloudflared/Ngrok cục bộ,CORS cùng nguồn qua req.hostname và rate limit chuẩn,CORS thông suốt rate limit chuẩn,ĐẠT
+TC_DEMO_01,Thiết lập lại dữ liệu demo chuẩn (demo:reset),Chạy npm run demo:reset,Tạo 12 điểm chuẩn tương đối (6 active 3 pending 3 resolved),Tạo đúng 12 điểm chuẩn tương đối,ĐẠT
+TC_DEMO_02,Idempotency của demo:reset,Chạy demo:reset 2 lần liên tiếp,Dữ liệu không bị nhân đôi vẫn giữ 12 điểm,Dữ liệu giữ nguyên 12 điểm,ĐẠT
+TC_DEMO_03,Từ chối demo:reset khi DATA_MODE=real,DATA_MODE=real chạy demo:reset,Từ chối thực thi với thông báo rõ ràng,Từ chối thực thi,ĐẠT
+TC_MB_01,Kiểm thử Mobile: Luồng bình thường,Cấp quyền GPS + Camera chụp gửi báo cáo,Tạo điểm ngập mới hoặc gộp thành công,Đạt,ĐẠT
+TC_MB_02,Kiểm thử Mobile: Từ chối quyền GPS,Chọn Chặn quyền vị trí trên trình duyệt,Hiện thông báo tiếng Việt hướng dẫn bật lại,Đạt,ĐẠT
+TC_MB_03,Kiểm thử Mobile: Từ chối quyền Camera,Chặn camera khi chụp,Hiện thông báo tiếng Việt có đường lui chọn thư viện,Đạt,ĐẠT
+TC_MB_04,Kiểm thử Mobile: Tắt GPS của máy,Tắt Location trên cài đặt điện thoại,Hiện thông báo rõ ràng không treo,Đạt,ĐẠT
+TC_MB_05,Kiểm thử Mobile: Mất mạng giữa chừng,Bật chế độ máy bay lúc bấm gửi,Thông báo lỗi mạng cho phép thử lại không mất ảnh,Đạt,ĐẠT
+TC_MB_06,Kiểm thử Mobile: Ảnh lớn dung lượng > 8MB,Chọn ảnh dung lượng lớn từ thư viện điện thoại,Nén canvas/sharp tự động gửi thành công,Đạt,ĐẠT
+TC_MB_07,Kiểm thử Mobile: Định dạng ảnh HEIC (iPhone),Chọn ảnh HEIC trên iOS Safari,Tự chuyển đổi canvas hoặc hướng dẫn chụp trực tiếp,Đạt,ĐẠT
+TC_MB_08,Kiểm thử Mobile: Chống gửi 2 lần liên tiếp,Bấm nút Gửi 2 lần thật nhanh,Nút bị khóa chỉ tạo 1 báo cáo duy nhất,Đạt,ĐẠT
+TC_MB_09,Kiểm thử Mobile: Gửi lại cùng một ảnh,Gửi ảnh đã gửi trước đó,Báo lỗi DUPLICATE_IMAGE bằng tiếng Việt,Đạt,ĐẠT
+TC_MB_10,Kiểm thử Mobile: Vượt giới hạn 5 báo cáo/giờ,Gửi báo cáo thứ 6 trong 1 giờ từ cùng thiết bị,Hiện thông báo giới hạn kèm thời gian chờ,Đạt,ĐẠT
+TC_MB_11,Kiểm thử Mobile: Vị trí ngoài Đồng Nai,Gửi báo cáo với GPS tại TP.HCM hoặc Hà Nội,Thông báo ngoài khu vực hỗ trợ,Đạt,ĐẠT
+TC_MB_12,Kiểm thử Mobile: Xác nhận Vẫn ngập,Bấm Vẫn ngập tại hiện trường điểm ngập,Số lượt tăng nút bị khóa thành công,Đạt,ĐẠT
+TC_MB_13,Kiểm thử Mobile: Xác nhận Hết ngập,Dùng 2 thiết bị khác nhau bấm Hết ngập,Điểm ngập chuyển sang resolved,Đạt,ĐẠT
+TC_MB_14,Kiểm thử Mobile: Xác nhận từ xa quá 300m,Bấm xác nhận khi cách xa hơn 300m,Thông báo vị trí quá xa điểm ngập,Đạt,ĐẠT
+TC_MB_15,Kiểm thử Mobile: Giao diện màn hình nhỏ và xoay ngang,Màn hình 360px và xoay ngang,Giao diện co giãn tốt nút bấm to dễ dùng một tay,Đạt,ĐẠT

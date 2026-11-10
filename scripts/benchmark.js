@@ -1,13 +1,22 @@
+import fs from 'fs';
+import path from 'path';
 import request from 'supertest';
 import { app } from '../src/server.js';
 import { getDb, closeDb } from '../src/db/connection.js';
 import { runMigrations } from '../scripts/migrate.js';
 
 export async function runBenchmark() {
-  const db = getDb();
+  // Đóng kết nối DB hiện tại (nếu có) và sử dụng DB tạm riêng biệt, không đụng tới DB dev
+  closeDb();
+  const tmpDbPath = path.resolve('./data/benchmark_temp.sqlite');
+  if (fs.existsSync(tmpDbPath)) {
+    try { fs.unlinkSync(tmpDbPath); } catch {}
+  }
+
+  const db = getDb(tmpDbPath);
   runMigrations(db);
 
-  console.log('⚡ [Benchmark] Đang nạp tạm thời 1.000 điểm ngập mẫu vào CSDL...');
+  console.log('⚡ [Benchmark] Đang nạp tạm thời 1.000 điểm ngập mẫu vào CSDL tạm riêng...');
   const insertStmt = db.prepare(`
     INSERT INTO flood_points (
       id, lat, lng, address, street, ward_id, status, severity,
@@ -85,9 +94,15 @@ export async function runBenchmark() {
 
   console.log(`⏱️ GET /api/flood-prone (Gom cụm trên 1.000 điểm): ${durationProne.toFixed(2)} ms (Status: ${resProne.status}, Clusters: ${resProne.body.data?.length})`);
 
-  // Dọn dẹp dữ liệu benchmark
-  db.prepare(`DELETE FROM flood_points WHERE id LIKE 'fp_bench_%'`).run();
-  console.log('🧹 Đã dọn dẹp sạch sẽ dữ liệu benchmark!');
+  // Dọn dẹp và xóa CSDL benchmark tạm
+  closeDb();
+  for (const suffix of ['', '-wal', '-shm']) {
+    const file = `${tmpDbPath}${suffix}`;
+    if (fs.existsSync(file)) {
+      try { fs.unlinkSync(file); } catch {}
+    }
+  }
+  console.log('🧹 Đã dọn dẹp sạch sẽ CSDL benchmark tạm (hoàn toàn không đụng DB dev)!');
 
   return {
     durationGeoJson: parseFloat(durationGeoJson.toFixed(2)),
