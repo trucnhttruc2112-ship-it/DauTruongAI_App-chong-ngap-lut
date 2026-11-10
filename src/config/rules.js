@@ -32,6 +32,14 @@ export const RULES = Object.freeze({
   // --- Ngưỡng đánh giá AI (NV3) ---
   // Độ tin cậy tối thiểu của AI để đưa thẳng điểm ngập vào trạng thái 'active'
   AI_MIN_CONFIDENCE_ACTIVE: 0.6,
+  // Ước lượng độ tin cậy AI khi NV3 chưa cung cấp trường confidence
+  AI_ESTIMATED_CONFIDENCE: Object.freeze({
+    flooded: 0.75,
+    not_flooded: 0.75,
+    uncertain: 0.3,
+  }),
+  // Thời gian chờ tối đa khi gọi phân tích AI từ xa (mili-giây)
+  AI_TIMEOUT_MS: 20000,
 
   // --- Vòng đời điểm ngập ---
   // Thời gian tự động hết hạn nếu không có xác nhận mới (giờ)
@@ -58,10 +66,14 @@ export const RULES = Object.freeze({
   RATE_LIMIT_REPORTS_PER_HOUR: 5,
   // Số request tối đa trong 1 phút cho 1 IP
   RATE_LIMIT_REQUESTS_PER_MINUTE: 20,
+  // Số xác nhận tối đa trong 1 phút cho 1 IP
+  RATE_LIMIT_CONFIRMS_PER_MINUTE: 10,
 
   // --- Xử lý ảnh ---
   // Dung lượng file ảnh upload tối đa (8MB)
   MAX_UPLOAD_FILE_SIZE_BYTES: 8 * 1024 * 1024,
+  // Giới hạn số điểm ảnh tối đa cho Sharp (50 Megapixels) chống decompression bomb
+  IMAGE_MAX_PIXELS: 50 * 1000 * 1000,
   // Chiều dài cạnh tối đa khi nén ảnh (pixel)
   IMAGE_MAX_DIMENSION: 1280,
   // Chất lượng nén ảnh JPEG (1-100)
@@ -70,6 +82,9 @@ export const RULES = Object.freeze({
   SIMILAR_IMAGE_MAX_HAMMING: 5,
   // Cửa sổ thời gian so sánh ảnh gần trùng (giờ)
   SIMILAR_IMAGE_WINDOW_HOURS: 24,
+
+  // Giới hạn kích thước phản hồi từ máy chủ AI NV3 (1MB)
+  AI_MAX_RESPONSE_BYTES: 1024 * 1024,
 
   // --- Trạng thái và mức độ hợp lệ ---
   STATUSES: Object.freeze(['pending', 'active', 'resolved', 'expired', 'rejected']),

@@ -43,7 +43,28 @@ export const deviceReportLimiter = rateLimit({
   },
 });
 
+/**
+ * Giới hạn tần suất gửi xác nhận điểm ngập theo địa chỉ IP (10 request / phút).
+ */
+export const confirmIpLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 phút
+  max: RULES.RATE_LIMIT_CONFIRMS_PER_MINUTE || 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => process.env.NODE_ENV === 'test' && req.headers['x-test-ip-rate-limit'] !== 'true',
+  handler: (req, res) => {
+    return res.status(429).json({
+      ok: false,
+      error: {
+        code: 'RATE_LIMITED',
+        message: 'Bạn đã gửi xác nhận quá nhiều lần. Vui lòng thử lại sau 1 phút.',
+      },
+    });
+  },
+});
+
 export default {
   ipLimiter,
   deviceReportLimiter,
+  confirmIpLimiter,
 };

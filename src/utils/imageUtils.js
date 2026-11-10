@@ -63,6 +63,14 @@ export async function compressAndSaveImage(buffer, baseUploadDir, now = new Date
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const targetDir = path.resolve(baseUploadDir, year, month);
 
+  // Chống path traversal: đảm bảo targetDir nằm trọn trong baseUploadDir
+  const resolvedBase = path.resolve(baseUploadDir);
+  if (!targetDir.startsWith(resolvedBase)) {
+    const err = new Error('Đường dẫn lưu trữ tệp không an toàn');
+    err.code = 'PATH_TRAVERSAL_DETECTED';
+    throw err;
+  }
+
   if (!fs.existsSync(targetDir)) {
     fs.mkdirSync(targetDir, { recursive: true });
   }
@@ -70,8 +78,17 @@ export async function compressAndSaveImage(buffer, baseUploadDir, now = new Date
   const filename = `${crypto.randomUUID()}.jpg`;
   const fullPath = path.join(targetDir, filename);
 
+  if (!fullPath.startsWith(resolvedBase)) {
+    const err = new Error('Đường dẫn lưu trữ tệp không an toàn');
+    err.code = 'PATH_TRAVERSAL_DETECTED';
+    throw err;
+  }
+
   // Xoay theo EXIF, xóa metadata (mặc định sharp không thêm lại EXIF), resize max 1280, nén jpeg q80
-  const processedBuffer = await sharp(buffer)
+  // Cấu hình limitInputPixels chống ảnh khổng lồ (decompression bomb)
+  const processedBuffer = await sharp(buffer, {
+    limitInputPixels: RULES.IMAGE_MAX_PIXELS || (50 * 1000 * 1000),
+  })
     .rotate()
     .resize(RULES.IMAGE_MAX_DIMENSION, RULES.IMAGE_MAX_DIMENSION, {
       fit: 'inside',
@@ -88,6 +105,7 @@ export async function compressAndSaveImage(buffer, baseUploadDir, now = new Date
     fullPath,
     relativeUrl,
     fileSizeBytes: processedBuffer.length,
+    buffer: processedBuffer,
   };
 }
 

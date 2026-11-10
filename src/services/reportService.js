@@ -130,8 +130,23 @@ export class ReportService {
       }
     }
 
-    // 5. Nén và ghi ảnh vào đĩa (Sharp xóa EXIF, resize max 1280, nén JPEG q80)
-    const savedImage = await compressAndSaveImage(file.buffer, ENV.UPLOAD_DIR, nowDate);
+    // 5. Nén và ghi ảnh vào đĩa (Sharp xóa EXIF, resize max 1280, nén JPEG q80, chống decompression bomb)
+    let savedImage;
+    try {
+      savedImage = await compressAndSaveImage(file.buffer, ENV.UPLOAD_DIR, nowDate);
+    } catch (saveErr) {
+      if (
+        saveErr.message?.includes('pixel limit') ||
+        saveErr.message?.includes('exceeds pixel limit') ||
+        saveErr.code === 'IMAGE_TOO_LARGE'
+      ) {
+        const err = new Error('Hình ảnh có số lượng điểm ảnh (pixel) vượt quá giới hạn an toàn cho phép');
+        err.code = 'IMAGE_TOO_LARGE';
+        err.status = 400;
+        throw err;
+      }
+      throw saveErr;
+    }
     const savedFullPath = savedImage.fullPath;
 
     try {
@@ -139,11 +154,15 @@ export class ReportService {
       let aiResult;
       try {
         aiResult = await analyzeImage(
-          file.buffer,
+          savedImage.buffer || file.buffer,
           {
             filename: file.originalname,
             note: validated.note,
             simulate: options.simulate || (process.env.NODE_ENV === 'test' ? body.simulate : undefined),
+            aiAnalyzeUrl: options.aiAnalyzeUrl,
+            aiApiKey: options.aiApiKey,
+            timeoutMs: options.timeoutMs,
+            fetchImpl: options.fetchImpl,
           },
           options.aiMode || ENV.AI_MODE
         );
@@ -170,13 +189,16 @@ export class ReportService {
       // Reverse Geocoding (ước lượng phường gần nhất nếu chưa có ranh giới polygon)
       const geoInfo = await geocodeService.reverse(validated.lat, validated.lng);
 
-      // Thu thập cờ độ tin cậy bao gồm cờ ước lượng phường (WARD_ESTIMATED) và ảnh tương tự (SIMILAR_IMAGE)
+      // Thu thập cờ độ tin cậy bao gồm cờ ước lượng phường (WARD_ESTIMATED), ảnh tương tự (SIMILAR_IMAGE) và cờ từ AI
       const finalReportFlags = [...contextResult.flags];
       if (geoInfo.isWardEstimated) {
         finalReportFlags.push('WARD_ESTIMATED');
       }
       if (isSimilarToOther) {
         finalReportFlags.push('SIMILAR_IMAGE');
+      }
+      if (Array.isArray(aiResult.flags)) {
+        finalReportFlags.push(...aiResult.flags);
       }
 
       // 8. Thực hiện giao dịch cơ sở dữ liệu (Transaction)
@@ -223,7 +245,7 @@ export class ReportService {
             imagePath: savedImage.relativeUrl,
             imageSha256,
             imageDhash,
-            aiJson: aiResult,
+            aiJson: aiResult.rawTruncated || aiResult,
             trustFlags: finalReportFlags,
             isDemo: 0,
           });
@@ -291,7 +313,7 @@ export class ReportService {
             imagePath: savedImage.relativeUrl,
             imageSha256,
             imageDhash,
-            aiJson: aiResult,
+            aiJson: aiResult.rawTruncated || aiResult,
             trustFlags: finalReportFlags,
             isDemo: 0,
           });
@@ -348,7 +370,7 @@ export class ReportService {
           imagePath: savedImage.relativeUrl,
           imageSha256,
           imageDhash,
-          aiJson: aiResult,
+          aiJson: aiResult.rawTruncated || aiResult,
           trustFlags: finalReportFlags,
           isDemo: 0,
         });

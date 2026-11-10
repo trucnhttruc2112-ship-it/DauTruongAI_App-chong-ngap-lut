@@ -1,0 +1,62 @@
+{
+  "flooded": {
+    "isFlooded": true,
+    "status": "flooded",
+    "severity": "high",
+    "evidence": ["Nước ngập lút nửa bánh xe", "Mặt đường ngập nước diện rộng"],
+    "summary": "Đoạn đường ngập sâu từ 30-50cm, phương tiện lưu thông khó khăn",
+    "needsVerification": false,
+    "confidence": 0.92
+  },
+  "not_flooded": {
+    "isFlooded": false,
+    "status": "not_flooded",
+    "severity": "none",
+    "evidence": ["Mặt đường khô ráo hoàn toàn", "Phương tiện di chuyển bình thường"],
+    "summary": "Không phát hiện dấu hiệu ngập nước tại hiện trường",
+    "needsVerification": false,
+    "confidence": 0.95
+  },
+  "uncertain": {
+    "isFlooded": null,
+    "status": "uncertain",
+    "severity": "unknown",
+    "evidence": ["Hình ảnh quá tối hoặc bị nhòe", "Không rõ vũng nước hay mặt đường"],
+    "summary": "Chưa đủ căn cứ xác định tình trạng ngập",
+    "needsVerification": true,
+    "confidence": 0.35
+  },
+  "missing_confidence": {
+    "isFlooded": true,
+    "status": "flooded",
+    "severity": "medium",
+    "evidence": ["Nước ngập mặt đường"],
+    "summary": "Đường ngập nước",
+    "needsVerification": false
+  },
+  "has_confidence": {
+    "isFlooded": true,
+    "status": "flooded",
+    "severity": "medium",
+    "evidence": ["Nước ngập vỉa hè"],
+    "summary": "Nước ngập nhẹ",
+    "needsVerification": false,
+    "confidence": 0.82
+  },
+  "invalid_enum": {
+    "isFlooded": true,
+    "status": "EXTREMELY_FLOODED_UNKNOWN_ENUM",
+    "severity": "catastrophic",
+    "evidence": ["Lỗi enum không hợp lệ"],
+    "summary": "Sai định dạng enum"
+  },
+  "conflict_status_is_flooded": {
+    "isFlooded": false,
+    "status": "flooded",
+    "severity": "medium",
+    "evidence": ["Mâu thuẫn logic: status báo flooded nhưng isFlooded lại là false"],
+    "summary": "Phát hiện mâu thuẫn giữa status và isFlooded",
+    "needsVerification": true
+  },
+  "broken_json_string": "{\"isFlooded\": true, \"status\": \"flooded\", \"sever"
+}
