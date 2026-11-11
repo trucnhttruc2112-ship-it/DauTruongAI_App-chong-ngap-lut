@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="NV1: bản đồ và hiển thị điểm ngập minh hoạ tại Đồng Nai bằng Leaflet." />
+  <title>NV1 – Bản đồ điểm ngập Đồng Nai</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Bản đồ điểm ngập Đồng Nai</h1>
+      <p>NV1 · Leaflet · Hiển thị dữ liệu bản đồ</p>
+    </div>
+    <div class="sample-tag">DỮ LIỆU MÔ PHỎNG — KHÔNG PHẢI CẢNH BÁO THẬT</div>
+  </header>
+
+  <main>
+    <section class="map-section" aria-label="Bản đồ Đồng Nai">
+      <div id="map" role="application" aria-label="Bản đồ điểm ngập tại Đồng Nai"></div>
+      <div class="legend" aria-label="Chú giải màu điểm ngập">
+        <strong>Chú giải</strong>
+        <div><span class="dot red"></span> Đang ngập – nặng (mẫu)</div>
+        <div><span class="dot orange"></span> Đang ngập – vừa (mẫu)</div>
+        <div><span class="dot yellow"></span> Đang ngập – nhẹ (mẫu)</div>
+        <div><span class="dot blue"></span> Vị trí hay ngập (mẫu)</div>
+      </div>
+    </section>
+    <p class="hint">Dùng bộ chọn lớp ở góc trên bên phải bản đồ để bật/tắt <b>Đang ngập</b> và <b>Hay ngập</b>. Nhấn vào điểm để xem thông tin, hình minh hoạ và số lần ngập.</p>
+    <p class="footnote" id="data-count" aria-live="polite"></p>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+  <script src="data.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>

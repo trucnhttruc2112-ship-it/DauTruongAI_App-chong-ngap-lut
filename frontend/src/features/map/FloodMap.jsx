@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import L from 'leaflet'
+import { createBandoMap, createBandoMarker } from '../../../../bando/map.js'
 import { APP_CONFIG } from '../../app/config.js'
 import { iconSvgString, SEVERITY_ICON } from '../../components/ui/Icon.jsx'
 import { SEVERITY } from '../../locales/vi/labels.js'
@@ -107,25 +108,28 @@ export const FloodMap = forwardRef(function FloodMap(
   // Khởi tạo một lần
   useEffect(() => {
     const start = initialView || { center: APP_CONFIG.map.center, zoom: APP_CONFIG.map.zoom }
-    const m = L.map(el.current, {
+    const { map: m, tileLayer: tiles } = createBandoMap(L, el.current, {
       center: start.center,
       zoom: start.zoom,
-      minZoom: APP_CONFIG.map.minZoom,
-      maxZoom: APP_CONFIG.map.maxZoom,
-      zoomControl: false,
-      attributionControl: true
+      mapOptions: {
+        minZoom: APP_CONFIG.map.minZoom,
+        maxZoom: APP_CONFIG.map.maxZoom,
+        zoomControl: false,
+        attributionControl: true
+      },
+      tileUrl: tileFail ? 'https://invalid.tile.local/{z}/{x}/{y}.png' : APP_CONFIG.map.tileUrl,
+      tileOptions: {
+        attribution: APP_CONFIG.map.attribution,
+        maxZoom: APP_CONFIG.map.maxZoom
+      },
+      scale: false
     })
     m.attributionControl.setPrefix(false)
-    const tiles = L.tileLayer(tileFail ? 'https://invalid.tile.local/{z}/{x}/{y}.png' : APP_CONFIG.map.tileUrl, {
-      attribution: APP_CONFIG.map.attribution,
-      maxZoom: APP_CONFIG.map.maxZoom
-    })
     tiles.on('tileerror', () => {
       tileErrors.current += 1
       if (tileErrors.current === 4) cb.current.onTileError?.()
     })
     tiles.on('load', () => { tileErrors.current = 0 })
-    tiles.addTo(m)
     tileLayer.current = tiles
 
     groups.current = {
@@ -188,12 +192,16 @@ export const FloodMap = forwardRef(function FloodMap(
       } else {
         const p = it.point
         const selected = p.id === selectedId
-        const mk = L.marker([p.lat, p.lng], {
+        const mk = createBandoMarker(L, p, {
           icon: pointIcon(p, selected),
-          keyboard: true,
-          title: `${p.place} – ${SEVERITY[p.severity]}`,
-          alt: `${p.place} – ${SEVERITY[p.severity]}`,
-          zIndexOffset: selected ? 1000 : SEV_RANK[p.severity] * 10
+          tooltip: false,
+          popup: false,
+          markerOptions: {
+            keyboard: true,
+            title: `${p.place} – ${SEVERITY[p.severity]}`,
+            alt: `${p.place} – ${SEVERITY[p.severity]}`,
+            zIndexOffset: selected ? 1000 : SEV_RANK[p.severity] * 10
+          }
         })
         mk.on('click', () => cb.current.onSelect?.(p.id))
         // Nhãn ngắn xuất hiện khi chọn hoặc đủ mức thu phóng
@@ -212,7 +220,12 @@ export const FloodMap = forwardRef(function FloodMap(
     g.clearLayers()
     if (!layers.history) return
     history.forEach((h) => {
-      L.marker([h.lat, h.lng], { icon: historyIcon(), title: `Thường ngập: ${h.place}`, keyboard: true })
+      createBandoMarker(L, h, {
+        icon: historyIcon(),
+        tooltip: false,
+        popup: false,
+        markerOptions: { title: `Thường ngập: ${h.place}`, keyboard: true }
+      })
         .bindPopup(
           `<div class="fm-popup"><p class="fm-popup__kicker">Thường ngập · dữ liệu lịch sử</p>
            <p class="fm-popup__title">${h.place}</p>
