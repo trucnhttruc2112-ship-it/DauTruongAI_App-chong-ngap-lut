@@ -63,7 +63,10 @@ function latestReportInfo(reports = []) {
 // Kết quả AI của báo cáo mới nhất có AI (để giao diện hiện đúng AI đã nói gì)
 function latestAiInfo(reports = []) {
   const ai = [...reports].reverse().find((r) => r.aiJson)?.aiJson;
-  return ai ? { isFlood: ai.isFlood ?? null, severity: ai.severity || null, description: ai.description || null } : null;
+  if (!ai) return null;
+  // aiJson có thể là kết quả đã chuẩn hóa (isFlood) hoặc JSON gốc của NV3 (status, summary)
+  const isFlood = ai.isFlood ?? (ai.status === 'flooded' ? true : ai.status === 'not_flooded' ? false : null);
+  return { isFlood, severity: ai.severity || null, description: ai.description || ai.summary || null };
 }
 
 export class FloodPointQueryService {
@@ -168,8 +171,8 @@ export class FloodPointQueryService {
 
     // Mô tả AI gần nhất (reports xếp từ cũ đến mới nên tìm từ cuối lên)
     const newestFirst = [...reports].reverse();
-    const latestAiReport = newestFirst.find((r) => r.aiJson && r.aiJson.description);
-    const aiDescription = latestAiReport ? latestAiReport.aiJson.description : null;
+    const latestAiReport = newestFirst.find((r) => r.aiJson && (r.aiJson.description || r.aiJson.summary));
+    const aiDescription = latestAiReport ? (latestAiReport.aiJson.description || latestAiReport.aiJson.summary) : null;
 
     // Lịch sử tối đa 10 sự kiện gần nhất (loại bỏ trường nội bộ)
     const rawEvents = eventRepo.listByFloodPointId(id, 10);
