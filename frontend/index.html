@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Bản đồ ngập – Phát hiện và cảnh báo ngập lụt AI">
+  <meta name="theme-color" content="#1D4ED8">
+  <title>Bản đồ ngập</title>
+
+  <!-- Áp dụng chế độ sáng/tối trước khi vẽ giao diện để giảm chớp nền (mục 4.4) -->
+  <script>
+    (function () {
+      try {
+        var pref = localStorage.getItem('flood-ui-theme') || 'light';
+        var theme = pref === 'system'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : pref;
+        document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
+      } catch (e) { /* giữ mặc định Sáng */ }
+    })();
+  </script>
+
+  <!-- Font Be Vietnam Pro (400 nội dung, 500 nhãn/nút, 600 tiêu đề); dự phòng system-ui -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <noscript>Website cần bật JavaScript để hiển thị bản đồ ngập.</noscript>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+/* Design tokens cho website ngập lụt AI
+   Nguồn: MO_TA_UI_UX_WEBSITE_NGAP_LUT_AI.pdf - mục 4 (Hệ thống thị giác)
+   Màu chủ đạo: xanh dương trên nền trắng/trung tính. Bo góc 8-12px, ít bóng. */
+
+:root {
+  /* ===== Màu - chế độ sáng (mặc định) ===== */
+  --bg-page: #F4F7FB;
+  --surface: #FFFFFF;
+  --text-primary: #172B4D;
+  --text-secondary: #52637A;
+  --action: #1D4ED8;
+  --action-hover: #1E40AF;
+  --action-contrast: #FFFFFF;
+  --bg-soft: #EFF6FF;
+  --border-decorative: #CBD5E1;
+  --border-input: #64748B;
+  --accent-teal: #0F766E;
+
+  /* Mức ngập (sáng) - chữ/nền */
+  --sev-light-text: #854D0E;
+  --sev-light-bg: #FEF3C7;
+  --sev-moderate-text: #9A3412;
+  --sev-moderate-bg: #FFEDD5;
+  --sev-severe-text: #B91C1C;
+  --sev-severe-bg: #FEE2E2;
+  --sev-unknown-text: #334155;
+  --sev-unknown-bg: #E2E8F0;
+  --ok-text: #166534;
+  --ok-bg: #DCFCE7;
+
+  /* ===== Kích thước & spacing ===== */
+  --radius-sm: 8px;       /* nút, ô nhập */
+  --radius-md: 12px;      /* bảng thông tin */
+  --radius-lg: 16px;      /* bảng mở từ đáy - 2 góc trên */
+  --radius-pill: 999px;   /* nhãn trạng thái ngắn */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --edge-mobile: 16px;
+  --edge-desktop: 24px;
+
+  --control-h-mobile: 48px;
+  --control-h-desktop-min: 40px;
+  --tap-primary: 44px;
+
+  --header-h: 64px;
+  --bottomnav-h: 60px;
+
+  --max-content: 1120px;
+  --list-w-min: 340px;
+  --list-w-max: 380px;
+
+  /* ===== Font ===== */
+  --font-sans: 'Be Vietnam Pro', system-ui, 'Segoe UI', sans-serif;
+  --fs-body: 16px;
+  --fs-secondary: 14px;
+  --fs-title: 28px;
+  --fs-section: 20px;
+  --fs-point: 18px;
+  --lh-body: 1.5;
+  --lh-secondary: 1.45;
+  --fw-regular: 400;
+  --fw-label: 500;
+  --fw-title: 600;
+
+  /* ===== Chuyển động ===== */
+  --t-fast: 150ms;
+  --t-mid: 220ms;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --shadow-soft: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-sheet: 0 -4px 16px rgba(15, 23, 42, 0.12);
+}
+
+/* ===== Chế độ tối ===== */
+:root[data-theme="dark"] {
+  --bg-page: #0F172A;
+  --surface: #17243A;
+  --text-primary: #E5EDF8;
+  --text-secondary: #BBC7D9;
+  --action: #93C5FD;
+  --action-hover: #BFDBFE;
+  --action-contrast: #0B1220;
+  --bg-soft: #213653;
+  --border-decorative: #43516A;
+  --border-input: #94A3B8;
+  --accent-teal: #5EEAD4;
+
+  --sev-light-text: #FDE68A;
+  --sev-light-bg: #422006;
+  --sev-moderate-text: #FED7AA;
+  --sev-moderate-bg: #431407;
+  --sev-severe-text: #FECACA;
+  --sev-severe-bg: #450A0A;
+  --sev-unknown-text: #CBD5E1;
+  --sev-unknown-bg: #334155;
+  --ok-text: #BBF7D0;
+  --ok-bg: #052E16;
+
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sheet: 0 -4px 16px rgba(0, 0, 0, 0.5);
+}
