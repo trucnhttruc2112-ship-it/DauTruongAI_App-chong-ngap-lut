@@ -26,7 +26,10 @@ npm install
 npm run setup
 ```
 
-`npm run setup` cài thư viện cho từng phần, tạo database và nạp 8 điểm ngập của NV6.
+`npm run setup` cài thư viện cho từng phần, tạo database và nạp 8 điểm ngập của NV6:
+
+- 5 điểm từng ngập theo báo chí (lớp "hay ngập").
+- 3 điểm đang ngập để trình diễn, có nhãn **Mô phỏng**, giờ ghi nhận lấy lúc nạp. Sau 6 giờ không ai xác nhận thì tự hết hạn, nên trước buổi thi nhớ chạy `npm run reset-data`.
 
 Muốn AI chạy thật thì chép `backend/.env.example` thành `backend/.env` rồi điền `GEMINI_API_KEY` (xin Thành). Không đưa file `.env` lên GitHub.
 
@@ -59,9 +62,23 @@ Mở http://localhost:5173
   - vị trí phải trong Đồng Nai;
   - mỗi trình duyệt gửi tối đa 5 báo cáo/giờ.
 - Xác nhận "vẫn ngập / hết ngập" cần đứng cách điểm không quá 300 m. Demo thì xác nhận trên điểm vừa báo.
-- Dự báo cần Internet. Nếu hôm demo trời không mưa, vào **Tùy chọn → Kịch bản mưa** chọn "Mô phỏng mưa lớn". Thẻ dự báo sẽ có nhãn "Mô phỏng".
+- Dự báo cần Internet. Không có mạng thì trang Dự báo báo "chưa lấy được lượng mưa từ Open-Meteo".
+- Nếu hôm demo trời không mưa, vào **Tùy chọn → Kịch bản mưa** chọn "Mô phỏng mưa lớn". Thẻ dự báo sẽ có nhãn "Mô phỏng".
 - Trước giờ thi: tắt app, chạy `npm run reset-data` để xóa báo cáo thử và nạp lại 8 điểm ban đầu.
-- Mở bằng điện thoại cùng WiFi: http://<IP máy tính>:5173. Điện thoại không dùng được camera và GPS qua http, nên chọn ảnh có sẵn và ghim vị trí trên bản đồ.
+- Mở bằng điện thoại cùng WiFi: http://<IP máy tính>:5173. Qua http thì điện thoại không dùng được camera và GPS, chỉ chọn ảnh có sẵn và ghim vị trí trên bản đồ.
+
+## Cho điện thoại chụp ảnh và lấy GPS (cần Internet)
+
+Khi app đang chạy, mở thêm 1 cửa sổ dòng lệnh ở thư mục gốc:
+
+```
+npm run tunnel
+```
+
+Lần đầu sẽ tải công cụ cloudflared. Chờ hiện dòng `https://....trycloudflare.com` rồi mở link đó trên điện thoại (không cần cùng WiFi). Link https nên camera và GPS chạy được.
+
+- Link đổi mỗi lần chạy, ai có link đều vào được. Demo xong bấm Ctrl + C để tắt.
+- Báo ngập thật từ điện thoại vẫn phải trong Đồng Nai và ảnh chụp trong 5 phút.
 
 ## Kiểm tra
 
@@ -69,7 +86,7 @@ Mở http://localhost:5173
 npm test
 ```
 
-Chạy test của NV3, NV4 và NV5 (kết quả ngày 11/11: 24 + 206 + 21 test đều qua).
+Chạy test của NV3, NV4 và NV5 (kết quả ngày 11/11: 24 + 208 + 21 test đều qua).
 
 ## Lỗi hay gặp
 
@@ -79,4 +96,6 @@ Chạy test của NV3, NV4 và NV5 (kết quả ngày 11/11: 24 + 206 + 21 test 
 | Cài `better-sqlite3` lỗi | Dùng Node 20 hoặc 22 bản LTS, chạy lại `npm run setup` |
 | AI báo lỗi 503 | Chưa có `GEMINI_API_KEY`, dùng `npm run dev:mock` |
 | Trang Dự báo báo lỗi | Máy không có Internet, chọn kịch bản mưa mô phỏng |
+| Bản đồ không còn điểm đang ngập | Đã quá 6 giờ từ lúc nạp dữ liệu, chạy `npm run reset-data` |
+| `npm run tunnel` không ra link | Kiểm tra Internet, chạy lại lệnh |
 | Gửi báo cáo bị từ chối | Đọc thông báo: ảnh quá cũ, GPS kém hoặc gửi quá 5 lần/giờ |
