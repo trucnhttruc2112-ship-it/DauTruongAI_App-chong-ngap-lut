@@ -95,10 +95,12 @@ export default function AdminReportDetail() {
         {/* ----- Cột nội dung ----- */}
         <div className="stack stack--lg">
           <Card className="stack">
-            <figure className="photo-frame photo-frame--wide">
-              <img src={r.photo} alt={`Ảnh hiện trường ${r.place}`} />
-              <figcaption className="photo-frame__tag"><Icon name={r.photoSource === 'camera' ? 'camera' : 'image'} size={14} />{PHOTO_SOURCE[r.photoSource]}</figcaption>
-            </figure>
+            {r.photo ? (
+              <figure className="photo-frame photo-frame--wide">
+                <img src={r.photo} alt={`Ảnh hiện trường ${r.place}`} />
+                <figcaption className="photo-frame__tag"><Icon name={r.photoSource === 'camera' ? 'camera' : 'image'} size={14} />{PHOTO_SOURCE[r.photoSource]}</figcaption>
+              </figure>
+            ) : <p className="small muted">Điểm này chưa có ảnh hiện trường.</p>}
             <div className="mini-map">
               <FloodMap points={[r]} selectedId={r.id} layers={{ active: true }} initialView={{ center: [r.lat, r.lng], zoom: 16 }} label="Vị trí báo cáo" />
             </div>

@@ -9,6 +9,7 @@ import { SeverityBadge, VerificationBadge, ProcessingBadge, FloodConditionBadge,
 import { useTheme } from '../../hooks/useTheme.jsx'
 import { useSession, useDemoTools } from '../../hooks/useData.js'
 import { logout, setDemoTools, resetDemoData, getDemoTools } from '../../services/api.js'
+import { APP_CONFIG } from '../../app/config.js'
 import { SEVERITY, SEVERITY_ORDER, VERIFICATION, PROCESSING, FLOOD_CONDITION } from '../../locales/vi/labels.js'
 import '../../styles/pages.css'
 
@@ -141,6 +142,21 @@ export default function SettingsPage() {
               size="sm"
             />
           </div>
+          {APP_CONFIG.dataMode === 'live' ? (
+            <ChoiceGroup
+              legend="Kịch bản mưa cho trang Dự báo (máy chủ NV5)"
+              value={tools.rainScenario || ''}
+              onChange={(v) => setDemoTools({ rainScenario: v })}
+              options={[
+                { value: '', label: 'Dự báo thật (Open-Meteo)' },
+                { value: 'trung_binh', label: 'Mô phỏng mưa vừa (20 mm/3 giờ)' },
+                { value: 'cao', label: 'Mô phỏng mưa lớn (36 mm/3 giờ)' },
+                { value: 'rat_cao', label: 'Mô phỏng mưa rất lớn (60 mm/3 giờ)' }
+              ]}
+              columns={1}
+              size="sm"
+            />
+          ) : null}
           <div className="settings-row">
             <div>
               <p className="settings-row__label">Giả lập mất mạng khi gửi</p>
@@ -169,7 +185,9 @@ export default function SettingsPage() {
       </div>
 
       <Notice tone="demo" title="Phạm vi bản trình diễn">
-        Các phần cần dữ liệu thật như dự báo, tìm đường, tiếp nhận địa phương và đăng nhập chính thức chỉ mô phỏng. Không có nút hoạt động giả: phần chưa bật được ghi rõ trạng thái.
+        {APP_CONFIG.dataMode === 'live'
+          ? 'Báo cáo, AI phân tích ảnh, trang phường và dự báo đã nối máy chủ thật. Tìm đường, tiếp nhận của phường thật và đăng nhập chính thức vẫn là mô phỏng.'
+          : 'Các phần cần dữ liệu thật như dự báo, tìm đường, tiếp nhận địa phương và đăng nhập chính thức chỉ mô phỏng. Không có nút hoạt động giả: phần chưa bật được ghi rõ trạng thái.'}
       </Notice>
     </div>
   )

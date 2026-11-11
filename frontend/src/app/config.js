@@ -1,8 +1,13 @@
 // Cấu hình giao diện. Các giá trị là đề xuất trong tài liệu UI/UX, có thể đổi theo AI/máy chủ.
 
+const LIVE = import.meta.env.VITE_DATA_MODE === 'live'
+
 export const APP_CONFIG = {
-  /** 'demo' = dùng dữ liệu mẫu có nhãn Mô phỏng. Đổi sang 'live' khi lớp dịch vụ nối máy chủ thật. */
-  dataMode: 'demo',
+  /** 'demo' = dùng dữ liệu mẫu có nhãn Mô phỏng. 'live' = gọi máy chủ thật (đặt VITE_DATA_MODE=live). */
+  dataMode: LIVE ? 'live' : 'demo',
+
+  /** Đường dẫn máy chủ, Vite chuyển tiếp: /api -> NV4 (3000), /ai -> NV3 (3001), /nv5 -> NV5 (3005) */
+  api: { server: '', ai: '/ai', forecast: '/nv5' },
 
   /** Địa bàn mặc định đã cấu hình (tọa độ minh họa, cần thay bằng dữ liệu dự án) */
   map: {
@@ -11,7 +16,7 @@ export const APP_CONFIG = {
     minZoom: 11,
     maxZoom: 18,
     /** Phạm vi có dữ liệu của dự án (minh họa) */
-    supportedBounds: [[10.90, 106.78], [11.02, 106.93]],
+    supportedBounds: LIVE ? [[10.35, 106.75], [11.60, 107.60]] : [[10.90, 106.78], [11.02, 106.93]],
     tileUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   },

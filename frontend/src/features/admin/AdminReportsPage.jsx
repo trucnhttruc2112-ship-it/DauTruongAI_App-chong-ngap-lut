@@ -7,6 +7,7 @@ import { Notice, EmptyState, ListSkeleton, PageHeader } from '../../components/u
 import { SeverityBadge, VerificationBadge, ProcessingBadge, DataModeBadge } from '../../components/ui/Badges.jsx'
 import { useResource } from '../../hooks/useData.js'
 import { getAdminReports } from '../../services/api.js'
+import { APP_CONFIG } from '../../app/config.js'
 import { VERIFICATION, PROCESSING, SEVERITY, SEVERITY_ORDER } from '../../locales/vi/labels.js'
 import { formatFull, formatRelative } from '../../utils/time.js'
 
@@ -41,7 +42,7 @@ export default function AdminReportsPage() {
         <div className="admin-table-wrap"><table className="admin-table"><caption className="sr-only">Danh sách báo cáo khu vực</caption><thead><tr><th>Mã / vị trí</th><th>Ảnh</th><th>Mức ngập</th><th>Ghi nhận</th><th>Xác minh</th><th>Xử lý</th><th></th></tr></thead><tbody>{data.items.map((r) => <tr key={r.id}><td><Link to={`/quan-ly/bao-cao/${r.id}`} className="admin-report-link"><strong>{r.id}</strong><span>{r.place}</span></Link></td><td><span className="thumb">{r.photo ? <img src={r.photo} alt="" /> : null}</span></td><td><SeverityBadge severity={r.severity} size="sm" /></td><td><time dateTime={r.observedAt} title={formatFull(r.observedAt)}>{formatRelative(r.observedAt)}</time></td><td><VerificationBadge status={r.verificationStatus} size="sm" /></td><td><ProcessingBadge status={r.processingStatus} size="sm" /></td><td><Link to={`/quan-ly/bao-cao/${r.id}`} className="icon-link" aria-label={`Mở ${r.id}`}><Icon name="chevron-right" /></Link></td></tr>)}</tbody></table></div>
         <div className="admin-pagination"><span className="small muted">{data.total} báo cáo · trang {page}/{pages}</span><div className="row"><Button size="sm" variant="secondary" icon="chevron-left" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Trước</Button><Button size="sm" variant="secondary" iconRight="chevron-right" onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page === pages}>Sau</Button></div></div>
       </> : <EmptyState icon="report" title="Không có báo cáo phù hợp" description="Thử xóa bộ lọc hoặc mở rộng tìm kiếm." actions={<Button variant="secondary" onClick={() => { setQuery(''); setSearch(''); setProcessing(''); setVerification(''); setSeverity(''); setPage(1) }}>Xóa bộ lọc</Button>} />}
-      <Notice tone="demo" title="Dữ liệu khu vực trình diễn"><span className="row"><DataModeBadge mode="demo" size="sm" /> Các báo cáo trong danh sách là dữ liệu mẫu, không phải tiếp nhận địa phương thật.</span></Notice>
+      {APP_CONFIG.dataMode === 'demo' ? <Notice tone="demo" title="Dữ liệu khu vực trình diễn"><span className="row"><DataModeBadge mode="demo" size="sm" /> Các báo cáo trong danh sách là dữ liệu mẫu, không phải tiếp nhận địa phương thật.</span></Notice> : null}
     </div>
   )
 }

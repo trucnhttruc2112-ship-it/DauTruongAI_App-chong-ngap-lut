@@ -8,11 +8,16 @@
 import { APP_CONFIG } from '../app/config.js'
 import { seedReports, DEMO_OWNER_ID } from '../data/mock/reports.js'
 import {
-  PLACES, HISTORY_POINTS, FORECAST_AREAS, AFFECTED_ROADS, DATA_SOURCES, rainHourly
+  PLACES, HISTORY_POINTS, FORECAST_AREAS, AFFECTED_ROADS, DATA_SOURCES, rainHourly, AREAS as MOCK_AREAS
 } from '../data/mock/geo.js'
 import { scenePhoto } from '../data/mock/photos.js'
 import { idb, STORES, local } from './storage.js'
 import { TIME_WINDOWS } from '../utils/time.js'
+import * as live from './liveApi.js'
+
+// dataMode = 'live': gọi máy chủ thật (NV3, NV4, NV5) qua liveApi.js
+const LIVE = APP_CONFIG.dataMode === 'live'
+export const AREAS = LIVE ? live.LIVE_AREAS : MOCK_AREAS
 
 /* ------------------------------------------------------------------ */
 /* Công cụ trình diễn – bật trong Tùy chọn để thử các trạng thái lỗi   */
@@ -53,12 +58,20 @@ async function loadDb() {
   return loading
 }
 
+async function allReports(signal, ms) {
+  if (LIVE) return live.listAllReports(signal)
+  await loadDb()
+  await network(ms, signal)
+  return db.reports
+}
+
 async function persist() {
   try { await idb.set(STORES.mock, 'reports', db.reports) } catch (_) { /* phiên hiện tại vẫn dùng được */ }
 }
 
 /** Khôi phục dữ liệu mẫu ban đầu (Tùy chọn → Công cụ trình diễn). */
 export async function resetDemoData() {
+  if (LIVE) { emit('reports'); return }
   db = { reports: seedReports() }
   await persist()
   emit('reports')
@@ -136,6 +149,7 @@ export function filterPoints(points, filters) {
  * Đang ghi nhận ngập hoặc chưa có cập nhật mới; điểm "không thấy ngập" không thành marker.
  */
 export async function getFloodPoints({ signal } = {}) {
+  if (LIVE) return live.getFloodPoints({ signal })
   await loadDb()
   await network(450, signal)
   const pts = db.reports
@@ -147,6 +161,7 @@ export async function getFloodPoints({ signal } = {}) {
 }
 
 export async function getFloodPoint(id, { signal } = {}) {
+  if (LIVE) return live.getFloodPoint(id, { signal })
   await loadDb()
   await network(250, signal)
   const r = db.reports.find((x) => x.id === id && x.publicationStatus === 'public')
@@ -159,11 +174,13 @@ export async function getFloodPoint(id, { signal } = {}) {
 }
 
 export async function getHistoryPoints() {
+  if (LIVE) return live.getHistoryPoints()
   await sleep(200)
   return clone(HISTORY_POINTS)
 }
 
 export async function getForecasts() {
+  if (LIVE) return live.getForecasts()
   await network(400)
   return {
     items: clone(FORECAST_AREAS),
@@ -175,11 +192,13 @@ export async function getForecasts() {
 }
 
 export async function getAffectedRoads() {
+  if (LIVE) return live.getAffectedRoads()
   await network(300)
   return clone(AFFECTED_ROADS)
 }
 
 export async function getDataSources() {
+  if (LIVE) return live.getDataSources()
   await network(300)
   return clone(DATA_SOURCES)
 }
@@ -212,7 +231,7 @@ export async function reverseLookup(lat, lng) {
     if (d < bestD) { bestD = d; best = p }
   }
   // khoảng ~400 m
-  if (best && bestD < 0.004 ** 2) return { name: `Gần ${best.name}`, area: best.area }
+  if (best && bestD < 0.004 ** 2) return { name: `Gần ${best.name}`, area: LIVE ? live.nearestWard(lat, lng) : best.area }
   return null
 }
 
@@ -226,6 +245,7 @@ export async function reverseLookup(lat, lng) {
  * Không trả độ sâu hay phần trăm tin cậy khi "mô hình" không có (mục 7.3).
  */
 export async function analyzePhoto(photoMeta, { signal } = {}) {
+  if (LIVE) return live.analyzePhoto(photoMeta, { signal })
   const tools = getDemoTools()
   await sleep(2200 + Math.random() * 1200, signal)
   if (tools.networkFail || tools.aiMode === 'error') {
@@ -303,6 +323,11 @@ function nextId() {
  */
 export async function submitReport(payload, { requestId }) {
   const session = requireSession()
+  if (LIVE) {
+    const report = await live.submitReport(payload, { requestId })
+    emit('reports')
+    return report
+  }
   await loadDb()
   await network(900)
   if (submittedKeys.has(requestId)) {
@@ -346,6 +371,7 @@ export async function submitReport(payload, { requestId }) {
 
 export async function getMyReports({ signal } = {}) {
   const s = requireSession()
+  if (LIVE) return live.getMyReports({ signal })
   await loadDb()
   await network(400, signal)
   return {
@@ -356,6 +382,7 @@ export async function getMyReports({ signal } = {}) {
 
 export async function getReport(id, { signal } = {}) {
   const s = requireSession()
+  if (LIVE) return live.getReport(id, { signal })
   await loadDb()
   await network(300, signal)
   const r = db.reports.find((x) => x.id === id)
@@ -367,6 +394,11 @@ export async function getReport(id, { signal } = {}) {
 /** Người gửi bổ sung thông tin khi báo cáo ở trạng thái Cần bổ sung. */
 export async function addReportInfo(id, { note, photo }) {
   const s = requireSession()
+  if (LIVE) {
+    const r = await live.addReportInfo(id, { note, photo })
+    emit('reports')
+    return r
+  }
   await loadDb()
   await network(700)
   const r = db.reports.find((x) => x.id === id && x.ownerId === s.id)
@@ -395,6 +427,11 @@ export async function addReportInfo(id, { note, photo }) {
  */
 export async function submitConditionObservation(pointId, { still, note, level }) {
   requireSession()
+  if (LIVE) {
+    const p = await live.submitConditionObservation(pointId, { still, note, level })
+    emit('reports')
+    return p
+  }
   await loadDb()
   await network(700)
   const r = db.reports.find((x) => x.id === pointId)
@@ -423,6 +460,11 @@ export async function submitConditionObservation(pointId, { still, note, level }
  */
 export async function confirmFloodCondition(id, { condition, note, version }) {
   const s = requireSession('admin')
+  if (LIVE) {
+    const r = await live.confirmFloodCondition(id, { condition, note, version })
+    emit('reports')
+    return r
+  }
   await loadDb()
   await network(600)
   const r = db.reports.find((x) => x.id === id)
@@ -448,10 +490,9 @@ export async function confirmFloodCondition(id, { condition, note, version }) {
 /** Tổng hợp theo phường/khu vực cho trang phường. */
 export async function getWardSummary({ signal } = {}) {
   requireSession('admin')
-  await loadDb()
-  await network(300, signal)
+  const reports = await allReports(signal, 300)
   const map = new Map()
-  for (const r of db.reports) {
+  for (const r of reports) {
     const key = r.area || 'Chưa rõ khu vực'
     if (!map.has(key)) map.set(key, { area: key, active: 0, reportedClear: 0, pending: 0, severe: 0, total: 0 })
     const w = map.get(key)
@@ -467,9 +508,8 @@ export async function getWardSummary({ signal } = {}) {
 /** Tất cả điểm trong địa bàn quản lý (cả chờ duyệt) để vẽ bản đồ phường. */
 export async function getWardPoints({ area, signal } = {}) {
   requireSession('admin')
-  await loadDb()
-  await network(350, signal)
-  return clone(db.reports.filter((r) => !area || r.area === area))
+  const reports = await allReports(signal, 350)
+  return clone(reports.filter((r) => !area || r.area === area))
 }
 
 /* ------------------------------------------------------------------ */
@@ -477,12 +517,11 @@ export async function getWardPoints({ area, signal } = {}) {
 /* ------------------------------------------------------------------ */
 export async function getAdminReports({ page = 1, pageSize = APP_CONFIG.admin.pageSize, filters = {}, sort = 'newest', query = '', signal } = {}) {
   requireSession('admin')
-  await loadDb()
-  await network(400, signal)
+  const all = await allReports(signal, 400)
   const { time = 'all', severities = [], verification = [], processing = [], publication = [], areas = [], conditions = [] } = filters
   const win = TIME_WINDOWS[time]
   const q = strip(query)
-  let items = db.reports.filter((r) => {
+  let items = all.filter((r) => {
     if (areas.length && !areas.includes(r.area)) return false
     if (conditions.length && !conditions.includes(r.floodCondition)) return false
     if (severities.length && !severities.includes(r.severity)) return false
@@ -502,10 +541,10 @@ export async function getAdminReports({ page = 1, pageSize = APP_CONFIG.admin.pa
   const total = items.length
   const start = (page - 1) * pageSize
   const counts = {
-    pending: db.reports.filter((r) => r.publicationStatus === 'pending' && r.verificationStatus === 'unchecked').length,
-    needsInfo: db.reports.filter((r) => r.processingStatus === 'needs-info').length,
-    checking: db.reports.filter((r) => r.verificationStatus === 'checking').length,
-    reportedClear: db.reports.filter((r) => r.floodCondition === 'reported-clear').length
+    pending: all.filter((r) => r.publicationStatus === 'pending' && r.verificationStatus === 'unchecked').length,
+    needsInfo: all.filter((r) => r.processingStatus === 'needs-info').length,
+    checking: all.filter((r) => r.verificationStatus === 'checking').length,
+    reportedClear: all.filter((r) => r.floodCondition === 'reported-clear').length
   }
   return { items: clone(items.slice(start, start + pageSize)), total, page, pageSize, counts, fetchedAt: new Date().toISOString() }
 }
@@ -538,6 +577,11 @@ export const ACTION_META = {
 
 export async function updateReportStatus(id, { action, reason, version, closeOutcome }) {
   const s = requireSession('admin')
+  if (LIVE) {
+    const r = await live.updateReportStatus(id, { action, reason, version, closeOutcome })
+    emit('reports')
+    return r
+  }
   await loadDb()
   await network(700)
   const r = db.reports.find((x) => x.id === id)
@@ -598,6 +642,11 @@ export async function updateReportStatus(id, { action, reason, version, closeOut
 
 export async function addAdminNote(id, { text, version }) {
   const s = requireSession('admin')
+  if (LIVE) {
+    const r = await live.addAdminNote(id, { text, version })
+    emit('reports')
+    return r
+  }
   await loadDb()
   await network(500)
   const r = db.reports.find((x) => x.id === id)

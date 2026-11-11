@@ -2,6 +2,7 @@ import { NavLink, Outlet, useLocation, Navigate, Link } from 'react-router-dom'
 import { Icon } from '../../components/ui/Icon.jsx'
 import { Button } from '../../components/ui/Button.jsx'
 import { DataModeBadge } from '../../components/ui/Badges.jsx'
+import { APP_CONFIG } from '../../app/config.js'
 import { useSession } from '../../hooks/useData.js'
 import { logout } from '../../services/api.js'
 import '../../styles/admin.css'
@@ -25,7 +26,7 @@ export default function AdminLayout() {
           <Link to="/quan-ly" className="admin-mark"><Icon name="shield" size={20} /></Link>
           <div><strong>Quản lý khu vực</strong><span>Biên Hòa · khu trình diễn</span></div>
         </div>
-        <div className="admin-header__end"><DataModeBadge mode="demo" size="sm" /><Button size="sm" variant="ghost" icon="logout" onClick={() => { logout(); window.location.href = '/' }}>Đăng xuất</Button></div>
+        <div className="admin-header__end">{APP_CONFIG.dataMode === 'demo' ? <DataModeBadge mode="demo" size="sm" /> : null}<Button size="sm" variant="ghost" icon="logout" onClick={() => { logout(); window.location.href = '/' }}>Đăng xuất</Button></div>
       </header>
       <div className="admin-body">
         <aside className="admin-sidebar">

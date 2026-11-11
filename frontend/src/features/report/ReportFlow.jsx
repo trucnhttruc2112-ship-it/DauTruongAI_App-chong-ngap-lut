@@ -108,7 +108,7 @@ export default function ReportFlow() {
       c.abort()
       patch({ ai: { status: 'timeout' } })
     }, APP_CONFIG.ai.timeoutMs)
-    analyzePhoto({ size: photo.size }, { signal: c.signal })
+    analyzePhoto({ size: photo.size, dataUrl: photo.dataUrl }, { signal: c.signal })
       .then((res) => { if (!c.signal.aborted) patch({ ai: res }) })
       .catch((err) => { if (err?.name !== 'AbortError') patch({ ai: { status: 'error' } }) })
       .finally(() => clearTimeout(timeout))
@@ -197,7 +197,7 @@ export default function ReportFlow() {
         navigate(`/dang-nhap?tiep=${encodeURIComponent(routeLoc.pathname + routeLoc.search)}`, { state: { reason: 'expired' } })
         return
       }
-      setSubmit({ state: 'failed', error: err instanceof NetworkError ? 'network' : 'unknown', report: null })
+      setSubmit({ state: 'failed', error: err instanceof NetworkError ? 'network' : (err?.message || 'unknown'), report: null })
       setLive('Báo cáo chưa được gửi')
     }
   }
@@ -409,7 +409,9 @@ export default function ReportFlow() {
               >
                 {submit.error === 'network'
                   ? 'Không kết nối được máy chủ. Nội dung vẫn đang được giữ trong phiên này. Gửi lại sẽ dùng cùng mã yêu cầu nên không tạo báo cáo trùng.'
-                  : 'Đã có lỗi khi gửi. Nội dung vẫn đang được giữ trong phiên này.'}
+                  : submit.error !== 'unknown'
+                    ? `Máy chủ chưa nhận báo cáo: ${submit.error} Nội dung vẫn đang được giữ trong phiên này.`
+                    : 'Đã có lỗi khi gửi. Nội dung vẫn đang được giữ trong phiên này.'}
               </Notice>
             ) : null}
           </>

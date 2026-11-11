@@ -7,6 +7,7 @@ import { Notice, EmptyState, ListSkeleton, Tabs, PageHeader, Card, ResourceError
 import { SeverityBadge, DataModeBadge, TimeStamp } from '../../components/ui/Badges.jsx'
 import { useResource } from '../../hooks/useData.js'
 import { getFloodPoints, getForecasts } from '../../services/api.js'
+import { APP_CONFIG } from '../../app/config.js'
 import { SEVERITY } from '../../locales/vi/labels.js'
 import { formatShort, formatRelative } from '../../utils/time.js'
 import { DEFAULT_AREA_NAME, SEVERITY_ORDER } from '../../locales/vi/labels.js'
@@ -190,9 +191,15 @@ export default function AlertsPage() {
           {fcRes.loading ? <ListSkeleton rows={2} /> : forecasts.length ? (
             <div className="stack">
               {forecasts.map((f) => <ForecastCard key={f.id} f={f} rain={rain} />)}
-              <Notice tone="demo" title="Dự báo ngập trong khu trình diễn">
-                Đây là kịch bản nguy cơ mẫu do nhóm tạo, không phải dự báo từ máy chủ thật. Ngoài kịch bản, hệ thống chỉ hiển thị thông tin thời tiết nguồn.
-              </Notice>
+              {APP_CONFIG.dataMode === 'demo' || fcRes.data?.rainMode === 'sample' ? (
+                <Notice tone="demo" title="Dự báo ngập trong khu trình diễn">
+                  Đây là kịch bản nguy cơ mẫu do nhóm tạo, không phải dự báo từ máy chủ thật. Ngoài kịch bản, hệ thống chỉ hiển thị thông tin thời tiết nguồn.
+                </Notice>
+              ) : (
+                <Notice tone="info" title="Cách tính nguy cơ">
+                  Máy chủ dự báo cộng lượng mưa Open-Meteo trong 3 giờ tại các khu vực hay ngập: từ 15 mm là nhẹ, 30 mm là vừa, 50 mm (ở nơi đã ngập từ 3 lần) là nặng. Đây là mô hình đơn giản của nhóm, không phải dự báo thủy văn chính thức.
+                </Notice>
+              )}
             </div>
           ) : !fcRes.error ? (
             <EmptyState icon="rain" title="Chưa có dự báo ngập cho khu vực này" description="Hiện chỉ có thể xem thông tin mưa từ nguồn thời tiết." />

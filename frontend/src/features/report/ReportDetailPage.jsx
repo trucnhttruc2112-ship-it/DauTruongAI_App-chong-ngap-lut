@@ -153,13 +153,15 @@ export default function ReportDetailPage() {
 
       <section className="card stack" aria-labelledby="content-title">
         <h2 id="content-title" className="card__title">Thông tin đã gửi</h2>
-        <figure className="photo-frame">
-          <img src={r.photo} alt={`Ảnh báo cáo tại ${r.place}`} />
-          <figcaption className="photo-frame__tag">
-            <Icon name={r.photoSource === 'camera' ? 'camera' : 'image'} size={14} />
-            {PHOTO_SOURCE[r.photoSource]}
-          </figcaption>
-        </figure>
+        {r.photo ? (
+          <figure className="photo-frame">
+            <img src={r.photo} alt={`Ảnh báo cáo tại ${r.place}`} />
+            <figcaption className="photo-frame__tag">
+              <Icon name={r.photoSource === 'camera' ? 'camera' : 'image'} size={14} />
+              {PHOTO_SOURCE[r.photoSource]}
+            </figcaption>
+          </figure>
+        ) : <p className="small muted">Điểm này chưa có ảnh hiện trường.</p>}
         <MiniLocationMap lat={r.lat} lng={r.lng} />
         <InfoList items={[
           { label: 'Vị trí', value: r.place },

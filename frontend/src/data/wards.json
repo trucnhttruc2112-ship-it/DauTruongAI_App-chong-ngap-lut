@@ -1,0 +1,87 @@
+{
+  "_note": "Chép từ data/wards.json (NV6). Sửa ở data/wards.json rồi chép lại.",
+  "wards": [
+    {
+      "id": "tran-bien",
+      "name": "Phường Trấn Biên",
+      "lat": 10.95361,
+      "lng": 106.82222
+    },
+    {
+      "id": "bien-hoa",
+      "name": "Phường Biên Hòa"
+    },
+    {
+      "id": "tam-hiep",
+      "name": "Phường Tam Hiệp",
+      "lat": 10.94972,
+      "lng": 106.8575
+    },
+    {
+      "id": "long-binh",
+      "name": "Phường Long Bình",
+      "lat": 10.94583,
+      "lng": 106.8775
+    },
+    {
+      "id": "trang-dai",
+      "name": "Phường Trảng Dài",
+      "lat": 10.98694,
+      "lng": 106.8675
+    },
+    {
+      "id": "ho-nai",
+      "name": "Phường Hố Nai",
+      "lat": 10.96,
+      "lng": 106.93
+    },
+    {
+      "id": "long-hung",
+      "name": "Phường Long Hưng",
+      "lat": 10.87389,
+      "lng": 106.8575
+    },
+    {
+      "id": "phuoc-tan",
+      "name": "Phường Phước Tân",
+      "lat": 10.89194,
+      "lng": 106.90528
+    },
+    {
+      "id": "tam-phuoc",
+      "name": "Phường Tam Phước",
+      "lat": 10.86222,
+      "lng": 106.92056
+    },
+    {
+      "id": "tan-trieu",
+      "name": "Phường Tân Triều",
+      "lat": 10.97028,
+      "lng": 106.84417
+    },
+    {
+      "id": "long-thanh",
+      "name": "Phường Long Thành",
+      "lat": 10.783,
+      "lng": 106.955
+    },
+    {
+      "id": "trang-bom",
+      "name": "Phường Trảng Bom",
+      "lat": 10.95306,
+      "lng": 107.00361
+    },
+    {
+      "id": "nhon-trach",
+      "name": "Phường Nhơn Trạch",
+      "lat": 10.73944,
+      "lng": 106.94528
+    },
+    {
+      "id": "an-phuoc",
+      "name": "Xã An Phước",
+      "lat": 10.82,
+      "lng": 106.94
+    }
+  ]
+}

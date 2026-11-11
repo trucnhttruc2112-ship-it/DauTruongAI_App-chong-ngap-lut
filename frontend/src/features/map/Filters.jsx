@@ -3,7 +3,7 @@ import { ChoiceGroup } from '../../components/ui/Field.jsx'
 import { Button } from '../../components/ui/Button.jsx'
 import { SheetDialog } from '../../components/ui/Dialog.jsx'
 import { SEVERITY, VERIFICATION, TIME_FILTER, SEVERITY_ORDER } from '../../locales/vi/labels.js'
-import { AREAS } from '../../data/mock/geo.js'
+import { AREAS } from '../../services/api.js'
 import { DEFAULT_FILTERS, countActiveFilters } from './mapState.jsx'
 
 const sevOptions = SEVERITY_ORDER.map((s) => ({ value: s, label: SEVERITY[s] }))
