@@ -5,7 +5,7 @@ import { useResource } from '../../hooks/useData.js'
 import { getDataSources } from '../../services/api.js'
 import { formatFull, formatRelative } from '../../utils/time.js'
 
-const STATUS = { connected: 'Đang nhận', stale: 'Dữ liệu cũ', offline: 'Chưa kết nối' }
+const STATUS = { connected: 'Đang nhận', stale: 'Dữ liệu cũ', offline: 'Chưa kết nối', error: 'Lỗi tải dữ liệu' }
 
 /** Nguồn dữ liệu (mục 11.3): tên, địa bàn, trạng thái, lần nhận, nhãn Thật/Mẫu/Chưa kết nối. */
 export default function DataSourcesPage() {
@@ -16,7 +16,7 @@ export default function DataSourcesPage() {
         actions={<Button size="sm" variant="secondary" icon="refresh" onClick={res.reload} loading={res.refreshing}>Làm mới</Button>} />
       {res.loading ? <ListSkeleton rows={5} /> : (
         <div className="admin-table-wrap">
-          <table className="admin-table">
+          <table className="admin-table admin-table--wide">
             <caption className="sr-only">Danh sách nguồn dữ liệu</caption>
             <thead><tr><th>Nguồn</th><th>Địa bàn</th><th>Trạng thái</th><th>Lần nhận gần nhất</th><th>Nhãn</th></tr></thead>
             <tbody>

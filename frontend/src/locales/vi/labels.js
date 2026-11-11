@@ -52,12 +52,14 @@ export const AI_RESULT = {
 
 export const PHOTO_SOURCE = {
   camera: 'Chụp trực tiếp trong website',
-  library: 'Ảnh có sẵn trên thiết bị'
+  library: 'Ảnh có sẵn trên thiết bị',
+  none: 'Chưa có ảnh hiện trường'
 }
 
 export const LOCATION_SOURCE = {
   gps: 'Vị trí từ GPS thiết bị',
-  manual: 'Vị trí do người gửi chọn'
+  manual: 'Vị trí do người gửi chọn',
+  team: 'Toạ độ ước lượng từ dữ liệu nhóm tổng hợp'
 }
 
 export const DATA_MODE = {

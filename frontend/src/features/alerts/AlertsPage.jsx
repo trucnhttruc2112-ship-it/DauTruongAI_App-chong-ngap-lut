@@ -13,7 +13,7 @@ import { formatShort, formatRelative } from '../../utils/time.js'
 import { DEFAULT_AREA_NAME, SEVERITY_ORDER } from '../../locales/vi/labels.js'
 import '../../styles/pages.css'
 
-function RainBars({ rain }) {
+function RainBars({ rain, source = 'nguồn mẫu' }) {
   const max = Math.max(...rain.map((h) => h.mm), 1)
   return (
     <div className="rain-chart">
@@ -26,13 +26,14 @@ function RainBars({ rain }) {
         ))}
       </div>
       <p className="small muted">
-        Lượng mưa theo giờ (mm/giờ · nguồn mẫu). Xác suất mưa không phải xác suất ngập.
+        Lượng mưa theo giờ (mm/giờ · {source}). Xác suất mưa không phải xác suất ngập.
       </p>
     </div>
   )
 }
 
-function ForecastCard({ f, rain }) {
+function ForecastCard({ f, rain, rainSource }) {
+  const live = APP_CONFIG.dataMode === 'live'
   const [open, setOpen] = useState(false)
   return (
     <Card className="forecast-card">
@@ -83,10 +84,10 @@ function ForecastCard({ f, rain }) {
             </ul>
           </div>
           <p className="small muted">
-            Phiên bản quy tắc: {f.ruleVersion}. Nguồn thời tiết: dữ liệu mẫu định dạng tương tự Open-Meteo.
+            Phiên bản quy tắc: {f.ruleVersion}. Nguồn thời tiết: {live ? rainSource : 'dữ liệu mẫu định dạng tương tự Open-Meteo'}.
             Giới hạn địa bàn: {f.area || DEFAULT_AREA_NAME}. Khu vực chỉ có dữ liệu cấp khu vực, không vẽ vùng chi tiết hơn.
           </p>
-          {rain ? <RainBars rain={rain} /> : null}
+          {f.rainSeries?.length ? <RainBars rain={f.rainSeries} source={f.dataMode === 'live' ? 'Open-Meteo' : 'kịch bản mô phỏng'} /> : rain ? <RainBars rain={rain} /> : null}
           <div className="row">
             <Button size="sm" variant="secondary" icon="map" to={`/?du-bao=${encodeURIComponent(f.id)}`}>Xem trên bản đồ</Button>
           </div>
@@ -114,7 +115,19 @@ export default function AlertsPage() {
       .sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity))
   }, [pointsRes.data])
 
-  const forecasts = fcRes.data?.items || []
+  const live = APP_CONFIG.dataMode === 'live'
+  const [horizon, setHorizon] = useState('all')
+  const allForecasts = fcRes.data?.items || []
+  const inHorizon = (f, h) => {
+    const from = new Date(f.validFrom)
+    if (h === '12h') return from.getTime() <= Date.now() + 12 * 3600_000
+    if (h === 'tomorrow') {
+      const t = new Date(); t.setDate(t.getDate() + 1)
+      return from.toDateString() === t.toDateString()
+    }
+    return true
+  }
+  const forecasts = live ? allForecasts.filter((f) => inHorizon(f, horizon)) : allForecasts
   const rain = fcRes.data?.rain
 
   return (
@@ -157,7 +170,7 @@ export default function AlertsPage() {
                       <div className="info-list__row"><dt>Khoảng ghi nhận</dt><dd><TimeStamp value={a.observedAt} /> – cập nhật <TimeStamp value={a.updatedAt} /></dd></div>
                       <div className="info-list__row"><dt>Căn cứ</dt><dd>{a.source}</dd></div>
                       <div className="info-list__row"><dt>Xác minh</dt><dd>{a.verificationStatus === 'verified' ? 'Đã xác minh' : a.verificationStatus === 'checking' ? 'Đang kiểm tra' : 'Chưa kiểm tra'}</dd></div>
-                      <div className="info-list__row"><dt>Nguồn</dt><dd className="row">{a.dataMode === 'demo' ? <DataModeBadge mode="demo" size="sm" /> : null}Báo cáo người dân qua website</dd></div>
+                      <div className="info-list__row"><dt>Nguồn</dt><dd className="row">{a.dataMode === 'demo' ? <DataModeBadge mode="demo" size="sm" /> : null}{a.channel || 'Báo cáo người dân qua website'}</dd></div>
                     </dl>
                     <div className="row">
                       <Button size="sm" variant="secondary" to={`/diem-ngap/${a.id}`}>Xem chi tiết điểm</Button>
@@ -178,19 +191,36 @@ export default function AlertsPage() {
         </section>
       ) : (
         <section id="panel-forecast" role="tabpanel" aria-labelledby="tab-forecast" className="stack">
-          <div className="horizon-row" role="group" aria-label="Khoảng dự báo">
-            <span className="horizon-chip is-active">6–12 giờ</span>
-            <span className="horizon-chip is-disabled" title="Chưa có dữ liệu ở khoảng này">1–3 giờ</span>
-            <span className="horizon-chip is-disabled" title="Ngoài kịch bản mẫu">Ngày mai</span>
-          </div>
-          <p className="small muted">
-            Ưu tiên khoảng 6–12 giờ. Các khoảng khác chỉ hiển thị khi nguồn dữ liệu hỗ trợ.
-          </p>
+          {live && fcRes.error && !fcRes.data ? null : live ? (
+            <>
+              <div className="horizon-row" role="group" aria-label="Khoảng dự báo">
+                {[['all', '3 ngày tới'], ['12h', '12 giờ tới'], ['tomorrow', 'Ngày mai']].map(([v, label]) => (
+                  <button key={v} type="button" className={`horizon-chip${horizon === v ? ' is-active' : ''}`} aria-pressed={horizon === v} onClick={() => setHorizon(v)}>
+                    {label} ({allForecasts.filter((f) => inHorizon(f, v)).length})
+                  </button>
+                ))}
+              </div>
+              <p className="small muted">
+                Mỗi thẻ là một khoảng giờ có nguy cơ tại một khu vực hay ngập. Máy chủ dự báo xét mưa 3 ngày tới.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="horizon-row" role="group" aria-label="Khoảng dự báo">
+                <span className="horizon-chip is-active">6–12 giờ</span>
+                <span className="horizon-chip is-disabled" title="Chưa có dữ liệu ở khoảng này">1–3 giờ</span>
+                <span className="horizon-chip is-disabled" title="Ngoài kịch bản mẫu">Ngày mai</span>
+              </div>
+              <p className="small muted">
+                Ưu tiên khoảng 6–12 giờ. Các khoảng khác chỉ hiển thị khi nguồn dữ liệu hỗ trợ.
+              </p>
+            </>
+          )}
 
           <ResourceError resource={fcRes} label="dự báo" />
           {fcRes.loading ? <ListSkeleton rows={2} /> : forecasts.length ? (
             <div className="stack">
-              {forecasts.map((f) => <ForecastCard key={f.id} f={f} rain={rain} />)}
+              {forecasts.map((f) => <ForecastCard key={f.id} f={f} rain={rain} rainSource={fcRes.data?.rainSource} />)}
               {APP_CONFIG.dataMode === 'demo' || fcRes.data?.rainMode === 'sample' ? (
                 <Notice tone="demo" title="Dự báo ngập trong khu trình diễn">
                   Đây là kịch bản nguy cơ mẫu do nhóm tạo, không phải dự báo từ máy chủ thật. Ngoài kịch bản, hệ thống chỉ hiển thị thông tin thời tiết nguồn.
@@ -202,16 +232,22 @@ export default function AlertsPage() {
               )}
             </div>
           ) : !fcRes.error ? (
-            <EmptyState icon="rain" title="Chưa có dự báo ngập cho khu vực này" description="Hiện chỉ có thể xem thông tin mưa từ nguồn thời tiết." />
+            live && allForecasts.length ? (
+              <EmptyState icon="rain" title="Không có nguy cơ trong khoảng này" description="Chọn khoảng thời gian khác để xem." />
+            ) : live ? (
+              <EmptyState icon="rain" title="Chưa có khu vực nào vượt ngưỡng mưa" description="Trong 3 ngày tới, mưa dự báo tại các khu vực hay ngập đều dưới 15 mm trong 3 giờ." />
+            ) : (
+              <EmptyState icon="rain" title="Chưa có dự báo ngập cho khu vực này" description="Hiện chỉ có thể xem thông tin mưa từ nguồn thời tiết." />
+            )
           ) : null}
 
           {rain ? (
             <Card>
               <div className="card__head">
-                <h2 className="card__title">Thông tin mưa tham khảo</h2>
-                <DataModeBadge mode="sample" size="sm" />
+                <h2 className="card__title">{live && fcRes.data?.rainPlace ? `Mưa 12 giờ tới · ${fcRes.data.rainPlace}` : 'Thông tin mưa tham khảo'}</h2>
+                <DataModeBadge mode={fcRes.data?.rainMode === 'live' ? 'live' : 'sample'} size="sm" />
               </div>
-              <RainBars rain={rain} />
+              <RainBars rain={rain} source={fcRes.data?.rainMode === 'live' ? 'Open-Meteo' : 'nguồn mẫu'} />
               <p className="small muted">
                 Nguồn: {fcRes.data?.rainSource}. Lượng mưa có đơn vị mm theo giờ; xác suất mưa có đơn vị %. Không đổi xác suất mưa thành xác suất ngập.
               </p>

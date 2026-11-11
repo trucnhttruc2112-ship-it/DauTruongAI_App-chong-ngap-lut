@@ -77,6 +77,10 @@ function toReport(p) {
   else if (p.confirmEnded > p.confirmStill) condition = 'reported-clear'
   const publication = p.publication || ({ active: 'public', resolved: 'public', expired: 'public', pending: 'pending', rejected: 'private' }[p.status] || 'pending')
   const hasPhoto = Array.isArray(p.images) && p.images.length > 0
+  // Điểm không có ảnh là dữ liệu nhóm tổng hợp từ báo chí (NV6), không phải người dân gửi
+  const last = p.latestReport || null
+  const photoSource = !hasPhoto ? 'none' : last?.photoSource === 'library' || last?.source === 'gallery' ? 'library' : 'camera'
+  const locationSource = !hasPhoto ? 'team' : last?.source === 'manual-pin' ? 'manual' : 'gps'
   // Kết quả AI lấy từ báo cáo gần nhất (chỉ có ở API chi tiết), không suy ra từ trạng thái điểm
   let ai = null
   if (p.latestAi) {
@@ -101,11 +105,11 @@ function toReport(p) {
     lng: p.lng,
     severity: SEV[p.severity] || 'unknown',
     photo: hasPhoto ? p.images[0] : null,
-    photoSource: 'camera',
-    locationSource: 'gps',
-    accuracy: null,
+    photoSource,
+    locationSource,
+    accuracy: locationSource === 'gps' && last?.accuracyM ? Math.round(last.accuracyM) : null,
     observedAt: p.lastConfirmedAt || p.lastUpdatedAt || p.firstReportedAt,
-    capturedAt: null,
+    capturedAt: last?.capturedAt || null,
     receivedAt: p.firstReportedAt,
     updatedAt: p.lastUpdatedAt,
     // Điểm nạp từ dữ liệu NV6 không có ảnh nên chưa có kết quả AI
@@ -116,7 +120,7 @@ function toReport(p) {
     floodCondition: condition,
     publicationStatus: publication,
     request: p.processingStatus === 'needs-info' && request ? request.text.replace(/^Yêu cầu bổ sung:?\s*/, '') : undefined,
-    dataMode: 'live',
+    dataMode: p.dataMode === 'demo' ? 'demo' : 'live',
     ownerId: mine && session ? session.id : 'other',
     version: p.version || 1,
     trustScore: p.trustScore,
@@ -140,7 +144,12 @@ function toPoint(r) {
     severity: r.severity,
     observedAt: r.observedAt,
     updatedAt: r.updatedAt,
-    source: r.photo ? 'Người dân gửi ảnh qua website' : 'Dữ liệu điểm ngập của nhóm (NV6)',
+    source: r.photo
+      ? 'Ảnh hiện trường người dân gửi qua website'
+      : r.dataMode === 'demo'
+        ? 'Điểm hay ngập theo báo chí, tình trạng hiện tại là mô phỏng'
+        : 'Điểm ngập nhóm tổng hợp từ báo chí',
+    channel: r.photo ? 'Báo cáo người dân qua website' : 'Dữ liệu nhóm tổng hợp',
     dataMode: r.dataMode,
     verificationStatus: r.verificationStatus,
     processingStatus: r.processingStatus,
@@ -207,21 +216,24 @@ export async function getAffectedRoads() {
   const { items } = await getFloodPoints()
   const roads = new Map()
   for (const p of items) {
-    if (p.floodCondition !== 'active') continue
-    const name = p.street || p.place
+    // Điểm không có tên đường (người dân tự mô tả vị trí) để ở mục "chưa gắn với đoạn đường"
+    if (p.floodCondition !== 'active' || !p.street) continue
+    const name = p.street
     const cur = roads.get(name)
-    if (cur && SEV_RANK[cur.severity] <= SEV_RANK[p.severity]) continue
+    const reportIds = [...(cur?.reportIds || []), p.id]
+    if (cur && SEV_RANK[cur.severity] <= SEV_RANK[p.severity]) { cur.reportIds = reportIds; continue }
     roads.set(name, {
       id: `rd-${p.id}`,
       name,
       from: null,
       to: null,
       severity: p.severity,
-      source: p.photo ? 'Báo cáo người dân' : 'Dữ liệu điểm ngập của nhóm',
+      source: p.photo ? 'Báo cáo người dân' : 'Dữ liệu nhóm tổng hợp',
       observedAt: p.observedAt,
       hasGeometry: false,
-      dataMode: 'live',
+      dataMode: p.dataMode,
       reportId: p.id,
+      reportIds,
       lat: p.lat,
       lng: p.lng
     })
@@ -245,40 +257,59 @@ export async function getForecasts() {
     for (const c of prone) {
       const body = await http(`${forecast}/demo/forecast?scenario=${scenario}&lat=${c.lat}&lng=${c.lng}`)
       const res = body.results[0]
-      if (res) results.push({ ...res, point: { ...res.point, duong: c.place, area: c.area, lat: c.lat, lng: c.lng } })
+      if (res) results.push({ ...res, point: { ...res.point, id: c.id, duong: c.place, area: c.area, lat: c.lat, lng: c.lng } })
     }
   } else {
     const body = await http(`${forecast}/forecast`)
     results = body.results.map((r) => ({ ...r, point: { ...r.point, area: WARD_NAMES[r.point.phuong] || null } }))
+    // Máy chủ NV5 chạy nhưng không tải được Open-Meteo (thường do mất Internet)
+    if (results.length && results.every((r) => r.error || !r.hourly?.length)) {
+      const err = new Error('Open-Meteo không trả dữ liệu')
+      err.hint = 'Máy chủ dự báo chưa lấy được lượng mưa từ Open-Meteo (cần Internet). Bấm Thử lại sau, hoặc vào Tùy chọn chọn kịch bản mưa mô phỏng để trình diễn.'
+      throw err
+    }
   }
 
   const mode = scenario ? 'demo' : 'live'
   const items = []
   for (const r of results) {
-    const top = [...(r.intervals || [])].sort((a, b) => (NV5_RANK[b.level] || 0) - (NV5_RANK[a.level] || 0))[0]
-    if (!top || !Number.isFinite(r.point.lat)) continue
-    items.push({
-      id: `fc-${r.point.id}-${top.start}`,
-      title: `Dự báo nguy cơ ngập – ${r.point.duong || r.point.area || 'khu vực hay ngập'}`,
-      area: r.point.area || null,
-      level: NV5_LEVEL[top.level] || 'light',
-      issuedAt: r.fetchedAt || new Date().toISOString(),
-      validFrom: nv5Time(top.start),
-      validTo: nv5Time(top.end),
-      rain: { amount: `${top.maxRain3h} mm`, window: '3 giờ', probability: top.maxProbability ?? '—' },
-      basis: [
-        scenario ? 'Lượng mưa theo kịch bản mô phỏng của NV5' : 'Lượng mưa dự báo theo giờ từ Open-Meteo',
-        top.reason,
-        'Ngưỡng nhóm dùng: 15 / 30 / 50 mm trong 3 giờ'
-      ],
-      ruleVersion: 'Quy tắc NV5',
-      dataMode: mode,
-      polygon: square(r.point.lat, r.point.lng)
-    })
+    if (!Number.isFinite(r.point.lat)) continue
+    for (const iv of r.intervals || []) {
+      const from = new Date(nv5Time(iv.start)).getTime()
+      const to = new Date(nv5Time(iv.end)).getTime()
+      // Mưa từng giờ quanh khoảng nguy cơ để vẽ cột
+      const rainSeries = (r.hourly || [])
+        .filter((h) => { const t = new Date(nv5Time(h.time)).getTime(); return t >= from - 2 * 3600_000 && t <= to + 3600_000 })
+        .slice(0, 12)
+        .map((h) => ({ at: nv5Time(h.time), mm: h.precipitation ?? 0, probability: h.probability ?? 0 }))
+      items.push({
+        id: `fc-${r.point.id}-${iv.start}`,
+        title: `Dự báo nguy cơ ngập – ${r.point.duong || r.point.area || 'khu vực hay ngập'}`,
+        place: r.point.duong || null,
+        area: r.point.area || null,
+        level: NV5_LEVEL[iv.level] || 'light',
+        issuedAt: r.fetchedAt || new Date().toISOString(),
+        validFrom: nv5Time(iv.start),
+        validTo: nv5Time(iv.end),
+        rain: { amount: `${iv.maxRain3h} mm`, window: '3 giờ', probability: iv.maxProbability ?? '—' },
+        rainSeries,
+        basis: [
+          scenario ? 'Lượng mưa theo kịch bản mô phỏng của NV5' : 'Lượng mưa dự báo theo giờ từ Open-Meteo',
+          iv.reason,
+          'Ngưỡng nhóm dùng: 15 / 30 / 50 mm trong 3 giờ'
+        ],
+        ruleVersion: 'Quy tắc NV5',
+        dataMode: mode,
+        polygon: square(r.point.lat, r.point.lng)
+      })
+    }
   }
+  items.sort((a, b) => new Date(a.validFrom) - new Date(b.validFrom) || SEV_RANK[a.level] - SEV_RANK[b.level])
 
+  // Mưa 12 giờ tới tại khu vực hay ngập đầu tiên (chỉ khi dùng dự báo thật)
   const now = Date.now() - 3600_000
-  const rain = (results[0]?.hourly || [])
+  const first = results.find((r) => r.hourly?.length)
+  const rain = scenario || !first ? null : first.hourly
     .filter((h) => new Date(nv5Time(h.time)).getTime() >= now)
     .slice(0, 12)
     .map((h) => ({ at: nv5Time(h.time), mm: h.precipitation ?? 0, probability: h.probability ?? 0 }))
@@ -286,7 +317,8 @@ export async function getForecasts() {
   return {
     items,
     rain,
-    rainSource: scenario ? 'Kịch bản mưa mô phỏng của NV5 (không phải dự báo thật)' : 'Open-Meteo, qua máy chủ dự báo NV5',
+    rainPlace: first?.point?.duong || first?.point?.area || null,
+    rainSource: scenario ? 'kịch bản mưa mô phỏng của NV5 (không phải dự báo thật)' : 'Open-Meteo, qua máy chủ dự báo NV5',
     rainMode: scenario ? 'sample' : 'live',
     fetchedAt: new Date().toISOString()
   }
@@ -298,17 +330,25 @@ async function ping(url) {
 }
 
 export async function getDataSources() {
-  const [nv4, nv3, nv5] = await Promise.all([
+  const [nv4, nv3, nv5, fc] = await Promise.all([
     ping(`${server}/api/health`),
     ping(`${ai}/api/health`),
-    ping(`${forecast}/demo/info`)
+    ping(`${forecast}/demo/info`),
+    ping(`${forecast}/forecast`)
   ])
+  const rainOk = Boolean(fc?.results?.some((r) => r.hourly?.length))
   const now = new Date().toISOString()
   const aiMock = nv3 && (nv3.mode === 'mock' || nv3.mock === true)
   return [
     { id: 'src-01', name: 'Báo cáo người dân qua website (NV4)', area: 'TP. Đồng Nai', status: nv4 ? 'connected' : 'offline', mode: nv4 ? 'live' : 'offline', lastReceived: nv4 ? now : null, note: 'Lưu trong cơ sở dữ liệu SQLite của máy chủ NV4' },
     { id: 'src-02', name: 'AI phân tích ảnh (Gemini, NV3)', area: 'Toàn bộ', status: nv3 ? 'connected' : 'offline', mode: nv3 ? (aiMock ? 'demo' : 'live') : 'offline', lastReceived: nv3 ? now : null, note: aiMock ? 'Đang chạy chế độ mock, chưa gọi Gemini' : 'Gọi Google Gemini qua máy chủ NV3' },
-    { id: 'src-03', name: 'Lượng mưa Open-Meteo (NV5)', area: 'Các khu vực hay ngập', status: nv5 ? 'connected' : 'offline', mode: nv5 ? 'live' : 'offline', lastReceived: nv5 ? now : null, note: 'Cần Internet để lấy dự báo mưa' },
+    {
+      id: 'src-03', name: 'Lượng mưa Open-Meteo (NV5)', area: 'Các khu vực hay ngập',
+      status: !nv5 ? 'offline' : rainOk ? 'connected' : 'error',
+      mode: rainOk ? 'live' : 'offline',
+      lastReceived: rainOk ? fc.generatedAt || now : null,
+      note: !nv5 ? 'Máy chủ dự báo NV5 chưa chạy' : rainOk ? 'Mưa theo giờ 3 ngày tới, máy chủ NV5 giữ 20 phút' : 'Máy chủ NV5 chạy nhưng chưa tải được Open-Meteo (cần Internet)'
+    },
     { id: 'src-04', name: 'Điểm ngập tổng hợp từ báo chí (NV6)', area: 'Khu vực Biên Hòa cũ', status: 'connected', mode: 'live', lastReceived: null, note: 'Toạ độ ước lượng, đang kiểm tra lại trên bản đồ' },
     { id: 'src-05', name: 'Trạm đo mực nước', area: '—', status: 'offline', mode: 'offline', lastReceived: null, note: 'Chưa có nguồn được phép sử dụng' },
     { id: 'src-06', name: 'Dữ liệu triều cường', area: '—', status: 'offline', mode: 'offline', lastReceived: null, note: 'Chưa kết nối' }
@@ -342,6 +382,7 @@ const submitted = new Map() // requestId -> báo cáo đã gửi, để bấm g�
 
 export async function submitReport(payload, { requestId }) {
   if (submitted.has(requestId)) return submitted.get(requestId)
+  if (getDemoTools().networkFail) throw new NetworkError()
   const session = getSession()
   const form = new FormData()
   form.append('image', await toBlob(payload.photo), 'bao-ngap.jpg')
@@ -351,13 +392,31 @@ export async function submitReport(payload, { requestId }) {
   form.append('accuracyM', payload.accuracy ?? 100)
   form.append('capturedAt', payload.capturedAt || payload.observedAt)
   form.append('deviceId', deviceId())
-  const source = payload.photoSource === 'library' ? 'gallery' : (payload.locationSource === 'gps' ? 'camera' : 'manual-pin')
+  // NV4 tính điểm tin cậy: ghim tay thấp nhất, ảnh có sẵn thấp hơn ảnh chụp
+  const source = payload.locationSource !== 'gps' ? 'manual-pin' : payload.photoSource === 'library' ? 'gallery' : 'camera'
   form.append('source', source)
+  form.append('photoSource', payload.photoSource === 'library' ? 'library' : 'camera')
   if (payload.place) form.append('address', payload.place.slice(0, 200))
   if (payload.observation?.note) form.append('note', payload.observation.note.slice(0, 200))
 
   const body = await http(`${server}/api/reports`, { method: 'POST', body: form })
   const p = body.data.floodPoint
+  if (!p) {
+    // AI không thấy ngập: NV4 vẫn lưu báo cáo để kiểm tra lại nhưng không tạo điểm trên bản đồ
+    const report = {
+      id: body.data.report?.id || 'Đã ghi nhận',
+      place: payload.place,
+      receivedAt: new Date().toISOString(),
+      ownerId: session?.id,
+      verificationStatus: 'invalid',
+      processingStatus: 'closed',
+      publicationStatus: 'private',
+      notOnMap: true,
+      serverMessage: body.data.message
+    }
+    submitted.set(requestId, report)
+    return report
+  }
   local.set(MY_KEY, [{ id: p.id, at: new Date().toISOString() }, ...myReports().filter((m) => m.id !== p.id)].slice(0, 50))
 
   const detail = await getDetail(p.id)

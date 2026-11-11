@@ -9,6 +9,7 @@ import { useResource, useIsDesktop } from '../../hooks/useData.js'
 import { getWardSummary, getWardPoints } from '../../services/api.js'
 import { FLOOD_CONDITION } from '../../locales/vi/labels.js'
 import { formatFull, formatRelative } from '../../utils/time.js'
+import { APP_CONFIG } from '../../app/config.js'
 
 const CONDITION_FILTERS = ['all', 'active', 'reported-clear', 'confirmed-clear', 'no-update']
 const SEV_RANK = { severe: 0, moderate: 1, light: 2, unknown: 3 }
@@ -118,7 +119,9 @@ export default function AdminMapPage() {
     <div className="admin-page">
       <PageHeader
         title="Trang phường · Bản đồ địa bàn"
-        description="Xem điểm ngập theo khu vực và xác nhận tình trạng. Các khu vực hiện đang được hiển thị bằng dữ liệu mô phỏng."
+        description={APP_CONFIG.dataMode === 'live'
+          ? 'Xem điểm ngập theo phường và xác nhận tình trạng. Tài khoản phường hiện là tài khoản thử, chưa phân quyền theo từng phường.'
+          : 'Xem điểm ngập theo khu vực và xác nhận tình trạng. Các khu vực hiện đang được hiển thị bằng dữ liệu mô phỏng.'}
         actions={<Button size="sm" variant="secondary" icon="refresh" onClick={() => { summary.reload(); pointsRes.reload() }} loading={pointsRes.refreshing}>Làm mới</Button>}
       />
 
@@ -170,7 +173,9 @@ export default function AdminMapPage() {
         </div>
       ) : <div id={`panel-${view}`} role="tabpanel" aria-labelledby={`tab-${view}`}>{view === 'list' ? list : map}</div>}
 
-      <p className="small muted row"><DataModeBadge mode="demo" size="sm" /> Địa bàn và tọa độ minh họa; ranh giới thật lấy từ dữ liệu dự án.</p>
+      {APP_CONFIG.dataMode === 'live'
+        ? <p className="small muted">Phường theo danh sách sau sắp xếp năm 2025. Điểm được gán vào phường có tâm gần nhất, chưa dùng ranh giới chính thức.</p>
+        : <p className="small muted row"><DataModeBadge mode="demo" size="sm" /> Địa bàn và tọa độ minh họa; ranh giới thật lấy từ dữ liệu dự án.</p>}
     </div>
   )
 }

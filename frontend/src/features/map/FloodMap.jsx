@@ -95,7 +95,7 @@ export const FloodMap = forwardRef(function FloodMap(
 
   useImperativeHandle(ref, () => ({
     flyTo: (lat, lng, zoom) => map.current?.flyTo([lat, lng], zoom ?? Math.max(map.current.getZoom(), 16), { duration: 0.5 }),
-    fitBounds: (b) => map.current?.fitBounds(b, { padding: [40, 40] }),
+    fitBounds: (b, opts) => map.current?.fitBounds(b, opts || { padding: [40, 40] }),
     getBounds: () => map.current?.getBounds(),
     invalidate: () => map.current?.invalidateSize(),
     zoomIn: () => map.current?.zoomIn(),
@@ -240,7 +240,7 @@ export const FloodMap = forwardRef(function FloodMap(
         fillOpacity: f.id === selectedForecastId ? 0.22 : 0.1
       })
         .bindPopup(
-          `<div class="fm-popup"><p class="fm-popup__kicker">Dự báo · Mô phỏng</p>
+          `<div class="fm-popup"><p class="fm-popup__kicker">Dự báo${f.dataMode === 'live' ? '' : ' · Mô phỏng'}</p>
            <p class="fm-popup__title">${f.title}</p>
            <p>Mức: ${SEVERITY[f.level]}</p>
            <p class="fm-popup__src">Xem căn cứ tại trang Cảnh báo.</p></div>`

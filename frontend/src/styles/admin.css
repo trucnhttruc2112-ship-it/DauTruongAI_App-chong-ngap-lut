@@ -94,6 +94,9 @@
 .src-status--connected { color: var(--ok-text); }
 .src-status--stale { color: var(--sev-light-text); }
 .src-status--offline { color: var(--text-secondary); }
+.src-status--error { color: var(--sev-severe-text); }
+/* Bảng nhiều cột: giữ độ rộng tối thiểu, điện thoại thì cuộn ngang */
+.admin-table--wide { min-width: 680px; }
 
 /* ---------- Chi tiết báo cáo quản lý ---------- */
 .admin-detail { display: grid; gap: var(--space-4); }

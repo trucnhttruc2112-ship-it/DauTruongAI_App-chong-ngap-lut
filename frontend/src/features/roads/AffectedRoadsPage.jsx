@@ -23,7 +23,7 @@ export default function AffectedRoadsPage() {
 
   // Điểm ngập đơn lẻ (chưa có đoạn) ở khu trình diễn
   const pointOnly = (pointsRes.data?.items || [])
-    .filter((p) => p.severity !== 'unknown' && !roads.some((r) => r.reportId === p.id))
+    .filter((p) => p.severity !== 'unknown' && !roads.some((r) => r.reportId === p.id || r.reportIds?.includes(p.id)))
     .slice(0, 3)
 
   function openOnMap() {

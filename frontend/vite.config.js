@@ -12,8 +12,11 @@ const proxy = {
   '/nv5': { target: 'http://localhost:3005', changeOrigin: true, rewrite: (p) => p.replace(/^\/nv5/, ''), configure: noOrigin }
 }
 
+// Cho phép mở qua đường hầm HTTPS (npm run tunnel) để điện thoại dùng được camera và GPS
+const allowedHosts = ['.trycloudflare.com']
+
 export default defineConfig({
   plugins: [react()],
-  server: { port: 5173, host: true, proxy },
-  preview: { port: 4173, host: true, proxy }
+  server: { port: 5173, host: true, proxy, allowedHosts },
+  preview: { port: 4173, host: true, proxy, allowedHosts }
 })

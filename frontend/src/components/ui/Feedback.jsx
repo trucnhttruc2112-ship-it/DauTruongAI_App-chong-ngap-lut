@@ -9,7 +9,7 @@ export function ResourceError({ resource, label }) {
       actions={<Button size="sm" icon="refresh" onClick={resource.reload} loading={resource.loading || resource.refreshing}>Thử lại</Button>}>
       {resource.data != null
         ? 'Đang giữ dữ liệu lần tải trước; thông tin có thể chưa được cập nhật. Hãy thử lại.'
-        : 'Không thể kiểm tra dữ liệu lúc này. Hãy kiểm tra kết nối và thử lại.'}
+        : resource.error.hint || 'Không thể kiểm tra dữ liệu lúc này. Hãy kiểm tra kết nối và thử lại.'}
     </Notice>
   )
 }

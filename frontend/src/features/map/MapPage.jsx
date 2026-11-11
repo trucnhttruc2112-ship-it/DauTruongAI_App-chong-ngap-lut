@@ -21,6 +21,9 @@ import { APP_CONFIG } from '../../app/config.js'
 import { DEFAULT_AREA_NAME } from '../../locales/vi/labels.js'
 import { formatShort } from '../../utils/time.js'
 
+// Chế độ thật: chỉ tự thu/phóng cho thấy hết điểm đang ngập ở lần mở bản đồ đầu tiên
+let fittedOnce = false
+
 export function MapPage() {
   const { id: routeId } = useParams()
   const navigate = useNavigate()
@@ -120,6 +123,19 @@ export function MapPage() {
 
   // Cập nhật vùng nhìn (không tự kéo người dùng khi dữ liệu mới về)
   const saveView = useCallback((v) => { view.current = v }, [view])
+
+  useEffect(() => {
+    if (APP_CONFIG.dataMode !== 'live' || fittedOnce || routeId || forecastId) return
+    const pts = (pointsRes.data?.items || []).filter((p) => p.floodCondition === 'active')
+    if (!pts.length || !mapRef.current) return
+    fittedOnce = true
+    // chừa chỗ cho nút bên phải và bảng danh sách ở dưới (điện thoại)
+    mapRef.current.fitBounds(L.latLngBounds(pts.map((p) => [p.lat, p.lng])), {
+      paddingTopLeft: [40, 40],
+      paddingBottomRight: [80, isDesktop ? 40 : 200],
+      maxZoom: 15
+    })
+  }, [pointsRes.data, routeId, forecastId, isDesktop])
 
   const onMoveEnd = useCallback(() => {
     setMoved(true)

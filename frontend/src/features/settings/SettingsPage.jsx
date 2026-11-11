@@ -125,8 +125,12 @@ export default function SettingsPage() {
             <h2 className="card__title">Công cụ trình diễn</h2>
             <DataModeBadge mode="demo" size="sm" />
           </div>
-          <p className="small muted">Chỉ dùng để thử các trạng thái trong bản demo. Không ảnh hưởng khi nối máy chủ thật.</p>
-          <div className="stack">
+          <p className="small muted">
+            {APP_CONFIG.dataMode === 'live'
+              ? 'Dùng khi trình diễn. Chỉ đổi trên trình duyệt này, không sửa dữ liệu trên máy chủ.'
+              : 'Chỉ dùng để thử các trạng thái trong bản demo. Không ảnh hưởng khi nối máy chủ thật.'}
+          </p>
+          {APP_CONFIG.dataMode === 'live' ? null : <div className="stack">
             <ChoiceGroup
               legend="Kết quả AI khi phân tích ảnh"
               value={tools.aiMode}
@@ -141,7 +145,7 @@ export default function SettingsPage() {
               columns={2}
               size="sm"
             />
-          </div>
+          </div>}
           {APP_CONFIG.dataMode === 'live' ? (
             <ChoiceGroup
               legend="Kịch bản mưa cho trang Dự báo (máy chủ NV5)"
@@ -171,13 +175,17 @@ export default function SettingsPage() {
               {tools.networkFail ? 'Đang bật' : 'Đang tắt'}
             </Button>
           </div>
-          <div className="settings-row">
-            <div>
-              <p className="settings-row__label">Dữ liệu mẫu</p>
-              <p className="settings-row__desc">Khôi phục báo cáo và trạng thái về dữ liệu mẫu ban đầu.</p>
+          {APP_CONFIG.dataMode === 'live' ? (
+            <p className="small muted">Xóa báo cáo thử trên máy chủ: tắt app rồi chạy <code>npm run reset-data</code>.</p>
+          ) : (
+            <div className="settings-row">
+              <div>
+                <p className="settings-row__label">Dữ liệu mẫu</p>
+                <p className="settings-row__desc">Khôi phục báo cáo và trạng thái về dữ liệu mẫu ban đầu.</p>
+              </div>
+              <Button size="sm" variant="secondary" icon="refresh" onClick={onReset} loading={busy}>Khôi phục</Button>
             </div>
-            <Button size="sm" variant="secondary" icon="refresh" onClick={onReset} loading={busy}>Khôi phục</Button>
-          </div>
+          )}
           <p className="small muted">
             Bản nháp được lưu trên thiết bị này; vào <Link to="/bao-cao-cua-toi">Báo cáo của tôi → Bản nháp</Link> để xóa.
           </p>

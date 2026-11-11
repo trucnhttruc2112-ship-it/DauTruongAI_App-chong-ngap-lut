@@ -205,6 +205,7 @@ export default function ReportFlow() {
   /* ================= Màn hình thành công ================= */
   if (submit.state === 'done' && submit.report) {
     const r = submit.report
+    const shownOnMap = APP_CONFIG.dataMode === 'live' && r.publicationStatus === 'public'
     return (
       <div className="report-shell">
         <ReportTopBar />
@@ -213,18 +214,21 @@ export default function ReportFlow() {
           <section className="success" aria-labelledby="success-title">
             <span className="success__icon" aria-hidden="true"><Icon name="check-circle" size={40} /></span>
             <h1 id="success-title" className="page-title" tabIndex={-1} ref={headingRef}>Đã gửi vào hệ thống thử nghiệm</h1>
-            <p className="muted">Báo cáo đang được kiểm tra trước khi công khai trên bản đồ.</p>
+            <p className="muted">
+              {r.serverMessage ? `${r.serverMessage} ` : null}
+              {r.notOnMap ? 'Điểm không được đưa lên bản đồ.' : shownOnMap ? 'Điểm đã hiện trên bản đồ, phường sẽ kiểm tra thêm.' : 'Báo cáo đang được kiểm tra trước khi công khai trên bản đồ.'}
+            </p>
           </section>
           <section className="card">
             <InfoList items={[
               { label: 'Mã báo cáo', value: <strong className="mono">{r.id}</strong> },
               { label: 'Thời gian gửi', value: formatFull(r.receivedAt) },
-              { label: 'Trạng thái', value: 'Đã gửi · Chờ kiểm tra' },
-              { label: 'Nơi tiếp nhận', value: <span className="row">Hệ thống thử nghiệm <DataModeBadge mode="demo" size="sm" /></span> }
+              { label: 'Trạng thái', value: r.notOnMap ? 'Đã gửi · AI không thấy ngập' : shownOnMap ? 'Đã gửi · Đã hiện trên bản đồ' : 'Đã gửi · Chờ kiểm tra' },
+              { label: 'Nơi tiếp nhận', value: APP_CONFIG.dataMode === 'live' ? 'Máy chủ báo cáo của nhóm' : <span className="row">Hệ thống thử nghiệm <DataModeBadge mode="demo" size="sm" /></span> }
             ]} />
           </section>
           <div className="actions-bar actions-bar--stretch">
-            <Button variant="primary" to={`/bao-cao/${r.id}`}>Xem báo cáo</Button>
+            {r.notOnMap ? null : <Button variant="primary" to={`/bao-cao/${r.id}`}>Xem báo cáo</Button>}
             <Button variant="secondary" to="/">Về bản đồ</Button>
           </div>
         </main>

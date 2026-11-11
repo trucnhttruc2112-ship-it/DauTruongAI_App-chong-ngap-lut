@@ -5,13 +5,14 @@ import { IconButton } from '../../components/ui/Button.jsx'
 import { Checkbox } from '../../components/ui/Field.jsx'
 import { SheetDialog } from '../../components/ui/Dialog.jsx'
 import { DataModeBadge } from '../../components/ui/Badges.jsx'
+import { APP_CONFIG } from '../../app/config.js'
 import { SEVERITY, SEVERITY_ORDER } from '../../locales/vi/labels.js'
 import { SEVERITY_ICON } from '../../components/ui/Icon.jsx'
 
 export const LAYER_META = {
   active: { label: 'Đang được báo ngập', desc: 'Báo cáo đã qua kiểm tra để công khai' },
   history: { label: 'Thường ngập', desc: 'Dữ liệu lịch sử, không phải tình trạng hiện tại' },
-  forecast: { label: 'Nguy cơ dự báo', desc: 'Vùng nét đứt, có khoảng hiệu lực · Mô phỏng' },
+  forecast: { label: 'Nguy cơ dự báo', desc: APP_CONFIG.dataMode === 'live' ? 'Vùng nét đứt quanh khu vực hay ngập, có khoảng hiệu lực' : 'Vùng nét đứt, có khoảng hiệu lực · Mô phỏng' },
   roads: { label: 'Đường bị ảnh hưởng', desc: 'Chỉ đoạn có dữ liệu hình học đã xác nhận' }
 }
 

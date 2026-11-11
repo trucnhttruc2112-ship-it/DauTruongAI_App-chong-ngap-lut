@@ -10,6 +10,7 @@ import { getMyReports } from '../../services/api.js'
 import { listDrafts, deleteDraft } from '../../services/drafts.js'
 import { PROCESSING } from '../../locales/vi/labels.js'
 import { formatFull, formatRelative } from '../../utils/time.js'
+import { APP_CONFIG } from '../../app/config.js'
 
 const PROCESSING_FILTERS = ['all', 'submitted', 'received', 'needs-info', 'in-progress', 'closed']
 
@@ -172,7 +173,7 @@ export default function MyReportsPage() {
                   actions={filter === 'all' ? <Button variant="secondary" to="/bao-ngap">Báo ngập</Button> : <Button variant="ghost" onClick={() => setFilter('all')}>Xem tất cả</Button>}
                 />
               )}
-              {res.data ? <p className="small muted row"><DataModeBadge mode="demo" size="sm" /> Dữ liệu mẫu cho bản trình diễn.</p> : null}
+              {res.data && APP_CONFIG.dataMode === 'demo' ? <p className="small muted row"><DataModeBadge mode="demo" size="sm" /> Dữ liệu mẫu cho bản trình diễn.</p> : null}
             </>
           )}
         </section>

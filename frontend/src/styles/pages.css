@@ -11,6 +11,8 @@
 }
 .horizon-chip.is-active { border-color: var(--action); background: var(--bg-soft); color: var(--action); }
 .horizon-chip.is-disabled { opacity: 0.5; cursor: not-allowed; text-decoration: line-through; }
+button.horizon-chip { cursor: pointer; font-family: inherit; color: var(--text-primary); }
+button.horizon-chip.is-active { color: var(--action); }
 
 .alert-list { list-style: none; display: flex; flex-direction: column; gap: var(--space-3); }
 .alert-card { display: flex; flex-direction: column; gap: var(--space-3); border-left: 4px solid var(--border-decorative); }

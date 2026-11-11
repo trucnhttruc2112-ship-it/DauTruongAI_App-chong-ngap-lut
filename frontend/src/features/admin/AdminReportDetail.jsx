@@ -81,7 +81,7 @@ export default function AdminReportDetail() {
           <h1 className="page-title">{r.place}</h1>
           <p className="small muted"><span className="mono">{r.id}</span> · {r.area} · nhận {formatFull(r.receivedAt)} · phiên bản {r.version}</p>
         </div>
-        <div className="row"><SeverityBadge severity={r.severity} /><DataModeBadge mode="demo" size="sm" /></div>
+        <div className="row"><SeverityBadge severity={r.severity} />{r.dataMode === 'demo' ? <DataModeBadge mode="demo" size="sm" /> : null}</div>
       </header>
 
       {conflict ? (
