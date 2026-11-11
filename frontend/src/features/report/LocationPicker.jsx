@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
+import { createBandoMap } from '../../../../bando/map.js'
 import { Button } from '../../components/ui/Button.jsx'
 import { Notice } from '../../components/ui/Feedback.jsx'
 import { iconSvgString } from '../../components/ui/Icon.jsx'
@@ -44,9 +45,15 @@ export function LocationPicker({ value, onChange, error }) {
 
   useEffect(() => {
     const start = value?.lat ? [value.lat, value.lng] : APP_CONFIG.map.center
-    const m = L.map(el.current, { center: start, zoom: value?.lat ? 17 : 14, zoomControl: true, attributionControl: true })
+    const { map: m } = createBandoMap(L, el.current, {
+      center: start,
+      zoom: value?.lat ? 17 : 14,
+      mapOptions: { zoomControl: true, attributionControl: true },
+      tileUrl: APP_CONFIG.map.tileUrl,
+      tileOptions: { attribution: APP_CONFIG.map.attribution, maxZoom: 19 },
+      scale: false
+    })
     m.attributionControl.setPrefix(false)
-    L.tileLayer(APP_CONFIG.map.tileUrl, { attribution: APP_CONFIG.map.attribution, maxZoom: 19 }).addTo(m)
     map.current = m
     const ro = new ResizeObserver(() => m.invalidateSize())
     ro.observe(el.current)

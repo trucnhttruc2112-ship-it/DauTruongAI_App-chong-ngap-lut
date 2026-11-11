@@ -1,0 +1,24 @@
+:root { font-family: Arial, Helvetica, sans-serif; color: #172b3a; background: #f3f7fa; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 17px 22px; background: #fff; border-bottom: 1px solid #dfe7ed; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+.topbar p { margin: 0; font-size: 13px; color: #587082; }
+.sample-tag { background: #fff4d8; color: #784d0b; font-size: 11px; font-weight: 700; padding: 10px 12px; border-radius: 8px; max-width: 315px; text-align: center; }
+main { max-width: 1320px; margin: 0 auto; padding: 16px 18px 25px; }
+.map-section { position: relative; }
+#map { height: min(74vh, 700px); min-height: 440px; width: 100%; border: 1px solid #d7e0e9; border-radius: 12px; overflow: hidden; background: #dcebf0; }
+.legend { position: absolute; left: 12px; bottom: 26px; z-index: 500; padding: 12px 14px; background: rgba(255,255,255,.96); border-radius: 8px; box-shadow: 0 3px 12px #233a4c33; font-size: 12px; line-height: 1.95; }
+.legend strong { display: block; font-size: 13px; }
+.dot { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; margin-right: 4px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px #a9b6bf; }
+.red { background: #e23c41; } .orange { background: #ee8d28; } .yellow { background: #e5c42e; } .blue { background: #2776cb; }
+.hint { color: #335366; font-size: 14px; line-height: 1.6; margin: 14px 2px 3px; }
+.footnote { color: #617685; font-size: 12px; margin: 5px 2px; }
+.leaflet-popup-content-wrapper { border-radius: 10px; }
+.leaflet-popup-content { width: min(270px, 70vw) !important; margin: 12px 14px !important; }
+.popup-title { font-weight: 700; font-size: 15px; margin: 0 0 6px; }
+.popup-pill { display: inline-block; padding: 3px 7px; border-radius: 5px; background: #edf3fa; font-weight: 700; font-size: 11px; margin-bottom: 7px; }
+.popup-photo { width: 100%; border-radius: 7px; border: 1px solid #d8e3e9; margin-top: 7px; }
+.popup-line { margin: 4px 0; font-size: 12px; line-height: 1.5; }
+.popup-warning { color: #986400; font-size: 11px; margin-top: 7px; font-weight: 700; }
+@media (max-width: 680px) { .topbar { flex-direction: column; align-items: flex-start; padding: 13px; } h1 {font-size: 19px;} main { padding: 10px; } #map { height: 72vh; min-height: 400px; } .legend { bottom: 20px; left: 7px; padding: 8px 10px; font-size: 11px; } .sample-tag { font-size: 10px; text-align: left; } }
