@@ -99,3 +99,12 @@ Chạy test của NV3, NV4 và NV5 (kết quả ngày 11/11: 32 + 208 + 21 test 
 | Bản đồ không còn điểm đang ngập | Đã quá 6 giờ từ lúc nạp dữ liệu, chạy `npm run reset-data` |
 | `npm run tunnel` không ra link | Kiểm tra Internet, chạy lại lệnh |
 | Gửi báo cáo bị từ chối | Đọc thông báo: ảnh quá cũ, GPS kém hoặc gửi quá 5 lần/giờ |
+
+
+## Thử AI với bộ ảnh thật
+
+1. Tạo thư mục ảnh, đặt tên file theo đáp án: `nhe-1.jpg`, `vua-1.jpg`, `nang-1.jpg`, `khong-ngap-1.jpg`, `kho-1.jpg` (ảnh khó, không chấm điểm). Chỉ nhận JPG, PNG, WebP, tối đa 5 MB.
+2. Bật máy chủ AI có key Gemini thật (`npm run dev:ai`, file `backend/.env` có `GEMINI_API_KEY`).
+3. Chạy: `npm run test:anh -- duong-dan-thu-muc-anh`
+
+Kết quả in ra màn hình (số ảnh đúng ngập/không ngập, số ảnh đúng cả mức) và lưu vào `ket-qua-test-ai.csv`.
