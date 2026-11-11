@@ -5,7 +5,7 @@ const WardActionSchema = z.object({
   action: z.enum(WARD_ACTIONS),
   reason: z.string().trim().max(500).optional(),
   version: z.coerce.number().int().positive().optional(),
-  closeOutcome: z.enum(['confirmed-clear', 'unchanged']).optional(),
+  closeOutcome: z.string().trim().max(40).optional(),
   actor: z.string().trim().max(80).optional(),
 });
 

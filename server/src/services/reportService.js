@@ -25,6 +25,8 @@ export const ReportPayloadSchema = z.object({
   deviceId: z.string().min(1, 'Mã thiết bị (deviceId) không được để trống'),
   source: z.enum(RULES.SOURCES).default('camera'),
   note: z.string().max(200, 'Ghi chú tối đa 200 ký tự').optional().nullable(),
+  // Tên đường / mô tả vị trí người dân nhập (dùng khi chưa tra được địa chỉ)
+  address: z.string().trim().max(200, 'Mô tả vị trí tối đa 200 ký tự').optional().nullable(),
 });
 
 const SEVERITY_LEVELS = { low: 1, medium: 2, high: 3 };
@@ -341,7 +343,7 @@ export class ReportService {
           id: newPointId,
           lat: validated.lat,
           lng: validated.lng,
-          address: geoInfo?.address || null,
+          address: geoInfo?.address || validated.address || null,
           street: geoInfo?.street || null,
           wardId: geoInfo?.wardId || null,
           status: initialStatus,

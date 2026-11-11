@@ -161,9 +161,16 @@ export class FloodPointQueryService {
 
     const lastFloodAt = events[0]?.startedAt || point.lastUpdatedAt || point.firstReportedAt;
 
+    // Kết quả AI của báo cáo gần nhất (để giao diện hiện đúng AI đã nói gì)
+    const ai = reports.find((r) => r.aiJson)?.aiJson;
+    const latestAi = ai
+      ? { isFlood: ai.isFlood ?? null, severity: ai.severity || null, description: ai.description || null }
+      : null;
+
     return {
       ...formatContractB(point, reports),
       aiDescription,
+      latestAi,
       events,
       lastFloodAt,
     };

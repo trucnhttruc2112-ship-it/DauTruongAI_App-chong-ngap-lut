@@ -6,7 +6,8 @@ import RULES from '../config/rules.js';
  */
 export const ipLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 phút
-  max: RULES.RATE_LIMIT_REQUESTS_PER_MINUTE, // 20
+  // Mặc định 20; khi chạy chung với giao diện React có thể nâng bằng RATE_LIMIT_PER_MINUTE
+  max: Number(process.env.RATE_LIMIT_PER_MINUTE) || RULES.RATE_LIMIT_REQUESTS_PER_MINUTE,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => req.ip,
