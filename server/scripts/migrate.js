@@ -99,6 +99,13 @@ export function runMigrations(dbInstance = null) {
   if (!hasDhash) {
     db.exec(`ALTER TABLE reports ADD COLUMN image_dhash TEXT;`);
   }
+  // Nguon anh va vi tri nguoi dan khai (camera/gallery/manual-pin, anh chup hay anh co san)
+  if (!reportCols.some((col) => col.name === 'source')) {
+    db.exec(`ALTER TABLE reports ADD COLUMN source TEXT;`);
+  }
+  if (!reportCols.some((col) => col.name === 'photo_source')) {
+    db.exec(`ALTER TABLE reports ADD COLUMN photo_source TEXT;`);
+  }
 
   // Cot cho trang phuong: trang thai xu ly, an/hien tren ban do, lich su, version
   const pointCols = db.pragma('table_info(flood_points)').map((col) => col.name);

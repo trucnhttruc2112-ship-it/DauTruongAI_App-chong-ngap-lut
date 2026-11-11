@@ -4,7 +4,8 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { ENV, validateEnvironmentConfig } from './config/env.js';
-import { closeDb } from './db/connection.js';
+import { closeDb, getDb } from './db/connection.js';
+import { runMigrations } from '../scripts/migrate.js';
 import floodPointRepo from './repositories/floodPointRepo.js';
 import reportRoutes from './routes/reportRoutes.js';
 import floodPointRoutes from './routes/floodPointRoutes.js';
@@ -286,6 +287,12 @@ process.on('unhandledRejection', (reason) => {
 // Khởi chạy server nếu được gọi trực tiếp
 let serverInstance = null;
 if (process.argv[1] && (process.argv[1].endsWith('server.js') || process.argv[1].endsWith('server'))) {
+  // Tạo bảng/cột còn thiếu (an toàn khi chạy nhiều lần), tránh lỗi khi quên npm run migrate
+  try {
+    runMigrations(getDb());
+  } catch (err) {
+    console.error('Lỗi khi kiểm tra cấu trúc database:', err.message);
+  }
   serverInstance = app.listen(ENV.PORT, () => {
     console.log(`🚀 [NV4 Server] Đang chạy tại ${ENV.PUBLIC_BASE_URL} (Cổng ${ENV.PORT})`);
     console.log(`   - Chế độ AI: ${ENV.AI_MODE}`);

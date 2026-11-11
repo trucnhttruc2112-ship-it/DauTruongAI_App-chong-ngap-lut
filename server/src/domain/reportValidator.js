@@ -43,7 +43,7 @@ export function validateReportContext({
   } else if (!isInsideDongNai(lat, lng)) {
     errors.push({
       code: 'OUT_OF_AREA',
-      message: 'Vị trí báo cáo nằm ngoài phạm vi địa lý tỉnh Đồng Nai',
+      message: 'Vị trí báo cáo nằm ngoài phạm vi địa lý thành phố Đồng Nai',
     });
   }
 

@@ -32,6 +32,7 @@ export function runSeed(dbInstance = null, { real = false } = {}) {
   const points = data.points || [];
 
   let insertedCount = 0;
+  let activeIndex = 0;
 
   // Dùng transaction để nạp toàn bộ an toàn
   const seedTransaction = db.transaction(() => {
@@ -39,11 +40,25 @@ export function runSeed(dbInstance = null, { real = false } = {}) {
       // Đảm bảo cờ is_demo = 1 (dữ liệu thật của NV6 thì is_demo = 0)
       p.isDemo = real ? 0 : 1;
 
+      // Dữ liệu NV6 là các điểm từng ngập theo báo chí. Điểm để 'active' chỉ dùng để trình diễn
+      // lớp "đang ngập", nên đánh dấu mô phỏng và lấy thời gian gần lúc nạp (không thì sau 6 giờ tự hết hạn).
+      if (real && p.status === 'active') {
+        const at = new Date(Date.now() - (25 + 15 * activeIndex++) * 60000).toISOString();
+        p.isDemo = 1;
+        p.firstReportedAt = at;
+        p.lastUpdatedAt = at;
+        p.lastConfirmedAt = at;
+      }
+
       // Xóa trước nếu đã tồn tại để tránh xung đột id khi seed lại
       db.prepare(`DELETE FROM flood_events WHERE flood_point_id = ?`).run(p.id);
       db.prepare(`DELETE FROM flood_points WHERE id = ?`).run(p.id);
 
       floodPointRepo.insert(p);
+      if (real) {
+        // Điểm cũ đã được xử lý xong, điểm đang ngập coi như phường đã tiếp nhận
+        floodPointRepo.update(p.id, { processingStatus: p.status === 'active' ? 'received' : 'closed' });
+      }
       insertedCount++;
 
       // Nếu điểm đang active, tạo luôn 1 sự kiện mở tương ứng

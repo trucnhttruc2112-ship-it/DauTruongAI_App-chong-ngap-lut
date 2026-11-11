@@ -27,6 +27,8 @@ export const ReportPayloadSchema = z.object({
   note: z.string().max(200, 'Ghi chú tối đa 200 ký tự').optional().nullable(),
   // Tên đường / mô tả vị trí người dân nhập (dùng khi chưa tra được địa chỉ)
   address: z.string().trim().max(200, 'Mô tả vị trí tối đa 200 ký tự').optional().nullable(),
+  // Ảnh chụp trong website hay ảnh có sẵn (chỉ để hiển thị, điểm tin cậy vẫn tính theo source)
+  photoSource: z.enum(['camera', 'library']).optional().nullable(),
 });
 
 const SEVERITY_LEVELS = { low: 1, medium: 2, high: 3 };
@@ -250,6 +252,8 @@ export class ReportService {
             aiJson: aiResult.rawTruncated || aiResult,
             trustFlags: finalReportFlags,
             isDemo: 0,
+            source: validated.source,
+            photoSource: validated.photoSource || null,
           });
 
           // Kiểm tra khả năng nâng cấp từ 'pending' lên 'active'
@@ -318,6 +322,8 @@ export class ReportService {
             aiJson: aiResult.rawTruncated || aiResult,
             trustFlags: finalReportFlags,
             isDemo: 0,
+            source: validated.source,
+            photoSource: validated.photoSource || null,
           });
 
           createdOrUpdatedFloodPoint = null;
@@ -375,6 +381,8 @@ export class ReportService {
           aiJson: aiResult.rawTruncated || aiResult,
           trustFlags: finalReportFlags,
           isDemo: 0,
+          source: validated.source,
+          photoSource: validated.photoSource || null,
         });
 
         // Nếu trạng thái khởi tạo là 'active', tạo 1 flood_event tương ứng

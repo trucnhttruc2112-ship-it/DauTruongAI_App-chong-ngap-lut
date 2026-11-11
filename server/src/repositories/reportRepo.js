@@ -14,11 +14,11 @@ export class ReportRepository {
       INSERT INTO reports (
         id, flood_point_id, device_id, lat, lng, accuracy_m,
         captured_at, created_at, image_path, image_sha256, image_dhash,
-        ai_json, trust_flags, is_demo
+        ai_json, trust_flags, is_demo, source, photo_source
       ) VALUES (
         @id, @floodPointId, @deviceId, @lat, @lng, @accuracyM,
         @capturedAt, @createdAt, @imagePath, @imageSha256, @imageDhash,
-        @aiJson, @trustFlags, @isDemo
+        @aiJson, @trustFlags, @isDemo, @source, @photoSource
       )
     `);
 
@@ -37,6 +37,8 @@ export class ReportRepository {
       aiJson: typeof report.aiJson === 'object' ? JSON.stringify(report.aiJson) : (report.aiJson || null),
       trustFlags: Array.isArray(report.trustFlags) ? JSON.stringify(report.trustFlags) : (report.trustFlags || null),
       isDemo: report.isDemo ?? report.is_demo ?? 0,
+      source: report.source || null,
+      photoSource: report.photoSource || report.photo_source || null,
     };
 
     stmt.run(params);
@@ -123,6 +125,8 @@ export class ReportRepository {
       aiJson,
       trustFlags,
       isDemo: Boolean(row.is_demo),
+      source: row.source || null,
+      photoSource: row.photo_source || null,
     };
   }
 }

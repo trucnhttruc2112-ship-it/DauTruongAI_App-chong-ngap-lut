@@ -50,7 +50,7 @@ export function isValidCoordinate(lat, lng) {
 }
 
 /**
- * Kiểm tra xem tọa độ có nằm trong phạm vi tỉnh Đồng Nai hay không.
+ * Kiểm tra xem tọa độ có nằm trong phạm vi thành phố Đồng Nai hay không.
  * Giai đoạn đầu dùng bounding box định nghĩa trong rules.js (lat 10.35–11.60, lng 106.75–107.60).
  * Có thể mở rộng truyền polygon khi NV6 cung cấp.
  * 

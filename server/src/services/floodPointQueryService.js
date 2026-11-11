@@ -47,7 +47,23 @@ export function formatContractB(p, reports = []) {
     publication: p.publication || null,
     history: p.history || [],
     version: p.version || 1,
+    // 'demo' = điểm mô phỏng để trình diễn, 'real' = báo cáo thật hoặc dữ liệu nhóm thu thập
+    dataMode: (p.isDemo ?? p.is_demo) ? 'demo' : 'real',
   };
+}
+
+// Nguồn ảnh/vị trí của báo cáo mới nhất (reports xếp từ cũ đến mới)
+function latestReportInfo(reports = []) {
+  const last = reports[reports.length - 1];
+  return last
+    ? { source: last.source || null, photoSource: last.photoSource || null, accuracyM: last.accuracyM ?? null, capturedAt: last.capturedAt || null }
+    : null;
+}
+
+// Kết quả AI của báo cáo mới nhất có AI (để giao diện hiện đúng AI đã nói gì)
+function latestAiInfo(reports = []) {
+  const ai = [...reports].reverse().find((r) => r.aiJson)?.aiJson;
+  return ai ? { isFlood: ai.isFlood ?? null, severity: ai.severity || null, description: ai.description || null } : null;
 }
 
 export class FloodPointQueryService {
@@ -77,7 +93,11 @@ export class FloodPointQueryService {
     }
 
     const points = floodPointRepo.list(query);
-    return points.map((p) => formatContractB(p));
+    // Kèm ảnh và nguồn báo cáo mới nhất để bản đồ hiện được ảnh mà không phải gọi chi tiết từng điểm
+    return points.map((p) => {
+      const reports = reportRepo.listByFloodPointId(p.id);
+      return { ...formatContractB(p, reports), latestAi: latestAiInfo(reports), latestReport: latestReportInfo(reports) };
+    });
   }
 
   /**
@@ -146,8 +166,9 @@ export class FloodPointQueryService {
     // Lấy danh sách báo cáo để lấy ảnh và mô tả AI
     const reports = reportRepo.listByFloodPointId(id);
 
-    // Mô tả AI gần nhất
-    const latestAiReport = reports.find((r) => r.aiJson && r.aiJson.description);
+    // Mô tả AI gần nhất (reports xếp từ cũ đến mới nên tìm từ cuối lên)
+    const newestFirst = [...reports].reverse();
+    const latestAiReport = newestFirst.find((r) => r.aiJson && r.aiJson.description);
     const aiDescription = latestAiReport ? latestAiReport.aiJson.description : null;
 
     // Lịch sử tối đa 10 sự kiện gần nhất (loại bỏ trường nội bộ)
@@ -162,15 +183,16 @@ export class FloodPointQueryService {
     const lastFloodAt = events[0]?.startedAt || point.lastUpdatedAt || point.firstReportedAt;
 
     // Kết quả AI của báo cáo gần nhất (để giao diện hiện đúng AI đã nói gì)
-    const ai = reports.find((r) => r.aiJson)?.aiJson;
-    const latestAi = ai
-      ? { isFlood: ai.isFlood ?? null, severity: ai.severity || null, description: ai.description || null }
-      : null;
+    const latestAi = latestAiInfo(reports);
+
+    // Nguồn ảnh và vị trí của báo cáo mới nhất (để trang phường biết ảnh chụp hay ảnh có sẵn, GPS hay ghim tay)
+    const latestReport = latestReportInfo(reports);
 
     return {
       ...formatContractB(point, reports),
       aiDescription,
       latestAi,
+      latestReport,
       events,
       lastFloodAt,
     };

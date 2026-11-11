@@ -161,7 +161,7 @@ describe('Prompt 3: API Tiếp nhận Báo cáo Ngập (POST /api/reports)', () 
     expect(res.status).toBe(422);
     expect(res.body.ok).toBe(false);
     expect(res.body.error.code).toBe('OUT_OF_AREA');
-    expect(res.body.error.message).toContain('ngoài phạm vi địa lý tỉnh Đồng Nai');
+    expect(res.body.error.message).toContain('ngoài phạm vi địa lý thành phố Đồng Nai');
   });
 
   it('5. Ảnh quá cũ (> 5 phút): từ chối với mã lỗi 422 REPORT_TOO_OLD', async () => {
