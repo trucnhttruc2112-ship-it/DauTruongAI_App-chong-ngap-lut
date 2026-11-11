@@ -100,6 +100,21 @@ export function runMigrations(dbInstance = null) {
     db.exec(`ALTER TABLE reports ADD COLUMN image_dhash TEXT;`);
   }
 
+  // Cot cho trang phuong: trang thai xu ly, an/hien tren ban do, lich su, version
+  const pointCols = db.pragma('table_info(flood_points)').map((col) => col.name);
+  if (!pointCols.includes('processing_status')) {
+    db.exec(`ALTER TABLE flood_points ADD COLUMN processing_status TEXT DEFAULT 'submitted';`);
+  }
+  if (!pointCols.includes('publication')) {
+    db.exec(`ALTER TABLE flood_points ADD COLUMN publication TEXT;`);
+  }
+  if (!pointCols.includes('history_json')) {
+    db.exec(`ALTER TABLE flood_points ADD COLUMN history_json TEXT DEFAULT '[]';`);
+  }
+  if (!pointCols.includes('version')) {
+    db.exec(`ALTER TABLE flood_points ADD COLUMN version INTEGER DEFAULT 1;`);
+  }
+
   return true;
 }
 

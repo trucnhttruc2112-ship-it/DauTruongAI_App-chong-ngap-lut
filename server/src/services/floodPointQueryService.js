@@ -43,6 +43,10 @@ export function formatContractB(p, reports = []) {
     floodEventCount: p.floodEventCount ?? p.flood_event_count ?? 0,
     firstReportedAt: p.firstReportedAt || p.first_reported_at || null,
     lastUpdatedAt: p.lastUpdatedAt || p.last_updated_at || null,
+    processingStatus: p.processingStatus || 'submitted',
+    publication: p.publication || null,
+    history: p.history || [],
+    version: p.version || 1,
   };
 }
 

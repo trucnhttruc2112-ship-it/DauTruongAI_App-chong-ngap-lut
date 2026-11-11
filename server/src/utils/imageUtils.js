@@ -3,6 +3,7 @@ import path from 'path';
 import crypto from 'crypto';
 import sharp from 'sharp';
 import RULES from '../config/rules.js';
+import { ENV } from '../config/env.js';
 
 /**
  * Kiểm tra magic bytes của buffer ảnh (không tin mimetype do client gửi lên).
@@ -65,6 +66,14 @@ export async function compressAndSaveImage(buffer, baseUploadDir, now = new Date
 
   // Chống path traversal: đảm bảo targetDir nằm trọn trong baseUploadDir
   const resolvedBase = path.resolve(baseUploadDir);
+  // Thư mục gốc lưu ảnh phải nằm trong thư mục server hoặc đúng UPLOAD_DIR đã cấu hình
+  const projectRoot = path.resolve('.');
+  const insideProject = resolvedBase.startsWith(projectRoot + path.sep);
+  if (!insideProject && resolvedBase !== path.resolve(ENV.UPLOAD_DIR)) {
+    const err = new Error('Đường dẫn lưu trữ tệp không an toàn');
+    err.code = 'PATH_TRAVERSAL_DETECTED';
+    throw err;
+  }
   if (!targetDir.startsWith(resolvedBase)) {
     const err = new Error('Đường dẫn lưu trữ tệp không an toàn');
     err.code = 'PATH_TRAVERSAL_DETECTED';

@@ -87,6 +87,10 @@ export class FloodPointRepository {
       historical_event_count: 'historical_event_count',
       isDemo: 'is_demo',
       is_demo: 'is_demo',
+      processingStatus: 'processing_status',
+      publication: 'publication',
+      historyJson: 'history_json',
+      version: 'version',
     };
 
     const updates = [];
@@ -216,7 +220,20 @@ export class FloodPointRepository {
       lastConfirmedAt: row.last_confirmed_at,
       historicalEventCount: row.historical_event_count,
       isDemo: Boolean(row.is_demo),
+      processingStatus: row.processing_status || 'submitted',
+      publication: row.publication || null,
+      history: parseHistory(row.history_json),
+      version: row.version || 1,
     };
+  }
+}
+
+function parseHistory(text) {
+  try {
+    const list = JSON.parse(text || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
   }
 }
 

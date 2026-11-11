@@ -8,6 +8,7 @@
     "dev": "node --watch src/server.js",
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed.js",
+    "seed:real": "node scripts/seed.js --real",
     "seed:clear": "node scripts/seedClear.js",
     "demo:reset": "node scripts/demo-reset.js",
     "bench": "node scripts/benchmark.js",

@@ -413,8 +413,8 @@ describe('Prompt 3: API Tiếp nhận Báo cáo Ngập (POST /api/reports)', () 
   });
 
   it('14. SỬA ĐỔI 2: geocodeService gán wardId theo phường gần nhất và lưu cờ WARD_ESTIMATED', async () => {
-    // Tọa độ gần Amata Long Bình (10.9447, 106.8243)
-    const geo = await geocodeService.reverse(10.9447, 106.8243);
+    // Tọa độ trong phường Long Bình (tâm phường theo danh sách phường mới của NV6)
+    const geo = await geocodeService.reverse(10.9458, 106.8775);
     expect(geo.wardId).toBe('long-binh');
     expect(geo.isWardEstimated).toBe(true);
     expect(geo.wardEstimateNote).toBe('TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6');
@@ -426,8 +426,8 @@ describe('Prompt 3: API Tiếp nhận Báo cáo Ngập (POST /api/reports)', () 
 
     const res = await request(app)
       .post('/api/reports')
-      .field('lat', 10.9447)
-      .field('lng', 106.8243)
+      .field('lat', 10.9458)
+      .field('lng', 106.8775)
       .field('accuracyM', 15)
       .field('capturedAt', new Date().toISOString())
       .field('deviceId', 'device_ward_estimate_test')

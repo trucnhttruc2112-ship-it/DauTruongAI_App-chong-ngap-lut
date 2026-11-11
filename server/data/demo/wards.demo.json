@@ -1,21 +1,133 @@
 {
-  "_note": "DỮ LIỆU GIẢ LẬP – CHỜ NV6",
-  "province": "Đồng Nai",
+  "_note": "Danh sách phường/xã sau sắp xếp 2025-2026 (NV6). Toạ độ là tâm gần đúng để gán phường tạm thời, chưa phải ranh giới thật.",
+  "province": "Thành phố Đồng Nai",
   "wards": [
-    { "id": "long-binh", "name": "Phường Long Bình", "district": "Thành phố Biên Hòa", "lat": 10.9447, "lng": 106.8243, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "trang-dai", "name": "Phường Trảng Dài", "district": "Thành phố Biên Hòa", "lat": 10.9712, "lng": 106.8322, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "ho-nai", "name": "Phường Hố Nai", "district": "Thành phố Biên Hòa", "lat": 10.9634, "lng": 106.8645, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "tan-phong", "name": "Phường Tân Phong", "district": "Thành phố Biên Hòa", "lat": 10.9680, "lng": 106.8120, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "quyet-thang", "name": "Phường Quyết Thắng", "district": "Thành phố Biên Hòa", "lat": 10.9480, "lng": 106.8180, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "tam-hiep", "name": "Phường Tam Hiệp", "district": "Thành phố Biên Hòa", "lat": 10.9490, "lng": 106.8350, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "an-binh", "name": "Phường An Bình", "district": "Thành phố Biên Hòa", "lat": 10.9525, "lng": 106.8421, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "phuoc-tan", "name": "Phường Phước Tân", "district": "Thành phố Biên Hòa", "lat": 10.9050, "lng": 106.8850, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "tt-long-thanh", "name": "Thị trấn Long Thành", "district": "Huyện Long Thành", "lat": 10.7830, "lng": 106.9550, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "an-phuoc", "name": "Xã An Phước", "district": "Huyện Long Thành", "lat": 10.8200, "lng": 106.9400, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "loc-an", "name": "Xã Lộc An", "district": "Huyện Long Thành", "lat": 10.8050, "lng": 106.9800, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "tt-trang-bom", "name": "Thị trấn Trảng Bom", "district": "Huyện Trảng Bom", "lat": 10.9550, "lng": 107.0100, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "ho-nai-3", "name": "Xã Hố Nai 3", "district": "Huyện Trảng Bom", "lat": 10.9600, "lng": 106.9300, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "tt-hiep-phuoc", "name": "Thị trấn Hiệp Phước", "district": "Huyện Nhơn Trạch", "lat": 10.7050, "lng": 106.9150, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
-    { "id": "phu-hoi", "name": "Xã Phú Hội", "district": "Huyện Nhơn Trạch", "lat": 10.7150, "lng": 106.9050, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" }
-  ]
+    {
+      "id": "tran-bien",
+      "name": "Phường Trấn Biên",
+      "lat": 10.95361,
+      "lng": 106.82222,
+      "gom": "Bửu Long, Quang Vinh, Trung Dũng, Thống Nhất, Hiệp Hòa, An Bình (Quyết Thắng, Thanh Bình đã nhập vào Trung Dũng; Hòa Bình nhập vào Quang Vinh từ 1/1/2025)",
+      "nguonToaDo": "Wikipedia (Trấn Biên)"
+    },
+    {
+      "id": "bien-hoa",
+      "name": "Phường Biên Hòa",
+      "gom": "Tân Hạnh, Hóa An, Bửu Hòa, Tân Vạn",
+      "nguonToaDo": "chưa có toạ độ tin cậy, không dùng để tự gán phường"
+    },
+    {
+      "id": "tam-hiep",
+      "name": "Phường Tam Hiệp",
+      "lat": 10.94972,
+      "lng": 106.8575,
+      "gom": "Tân Hiệp, Tân Mai, Bình Đa, Tam Hiệp (Tam Hòa đã nhập vào Bình Đa)",
+      "nguonToaDo": "Wikipedia (Tam Hiệp, Đồng Nai)"
+    },
+    {
+      "id": "long-binh",
+      "name": "Phường Long Bình",
+      "lat": 10.94583,
+      "lng": 106.8775,
+      "gom": "Long Bình, Hố Nai (cũ), Tân Biên",
+      "nguonToaDo": "Wikipedia (Long Bình, Đồng Nai)"
+    },
+    {
+      "id": "trang-dai",
+      "name": "Phường Trảng Dài",
+      "lat": 10.98694,
+      "lng": 106.8675,
+      "gom": "Trảng Dài, xã Thiện Tân",
+      "nguonToaDo": "Wikipedia (tâm phường Trảng Dài cũ, chưa tính Thiện Tân)"
+    },
+    {
+      "id": "ho-nai",
+      "name": "Phường Hố Nai",
+      "lat": 10.96,
+      "lng": 106.93,
+      "gom": "Tân Hòa, xã Hố Nai 3",
+      "nguonToaDo": "ước lượng (toạ độ xã Hố Nai 3 cũ trong file NV4), cần kiểm tra"
+    },
+    {
+      "id": "long-hung",
+      "name": "Phường Long Hưng",
+      "lat": 10.87389,
+      "lng": 106.8575,
+      "gom": "Long Bình Tân, An Hòa, xã Long Hưng",
+      "nguonToaDo": "Wikipedia (tâm xã Long Hưng cũ), cần kiểm tra"
+    },
+    {
+      "id": "phuoc-tan",
+      "name": "Phường Phước Tân",
+      "lat": 10.89194,
+      "lng": 106.90528,
+      "gom": "giữ nguyên",
+      "nguonToaDo": "Wikipedia (Phước Tân, Đồng Nai)"
+    },
+    {
+      "id": "tam-phuoc",
+      "name": "Phường Tam Phước",
+      "lat": 10.86222,
+      "lng": 106.92056,
+      "gom": "giữ nguyên",
+      "nguonToaDo": "Wikipedia (Tam Phước, Đồng Nai)"
+    },
+    {
+      "id": "tan-trieu",
+      "name": "Phường Tân Triều",
+      "lat": 10.97028,
+      "lng": 106.84417,
+      "gom": "Tân Phong, xã Tân Bình, Bình Lợi, Thạnh Phú",
+      "nguonToaDo": "Wikipedia (Tân Triều, Đồng Nai), cần kiểm tra"
+    },
+    {
+      "id": "long-thanh",
+      "name": "Phường Long Thành",
+      "lat": 10.783,
+      "lng": 106.955,
+      "gom": "TT Long Thành, xã Lộc An, Bình Sơn, Long An; lên phường từ 30/4/2026",
+      "nguonToaDo": "ước lượng (toạ độ TT Long Thành cũ trong file NV4)"
+    },
+    {
+      "id": "trang-bom",
+      "name": "Phường Trảng Bom",
+      "lat": 10.95306,
+      "lng": 107.00361,
+      "gom": "TT Trảng Bom, xã Sông Trầu, Quảng Tiến, Giang Điền; lên phường từ 30/4/2026",
+      "nguonToaDo": "Wikipedia (Trảng Bom)"
+    },
+    {
+      "id": "nhon-trach",
+      "name": "Phường Nhơn Trạch",
+      "lat": 10.73944,
+      "lng": 106.94528,
+      "gom": "TT Hiệp Phước, xã Phú Hội và các xã khác; lên phường từ 30/4/2026",
+      "nguonToaDo": "Wikipedia (Nhơn Trạch, Đồng Nai)"
+    },
+    {
+      "id": "an-phuoc",
+      "name": "Xã An Phước",
+      "lat": 10.82,
+      "lng": 106.94,
+      "gom": "Tam An, An Phước",
+      "nguonToaDo": "ước lượng (toạ độ trong file NV4 cũ)"
+    }
+  ],
+  "doiMaCu": {
+    "long-binh": "long-binh",
+    "trang-dai": "trang-dai",
+    "tam-hiep": "tam-hiep",
+    "phuoc-tan": "phuoc-tan",
+    "an-phuoc": "an-phuoc",
+    "ho-nai": "long-binh",
+    "an-binh": "tran-bien",
+    "quyet-thang": "tran-bien",
+    "tan-phong": "tan-trieu",
+    "ho-nai-3": "ho-nai",
+    "tt-long-thanh": "long-thanh",
+    "loc-an": "long-thanh",
+    "tt-trang-bom": "trang-bom",
+    "tt-hiep-phuoc": "nhon-trach",
+    "phu-hoi": "nhon-trach"
+  }
 }
