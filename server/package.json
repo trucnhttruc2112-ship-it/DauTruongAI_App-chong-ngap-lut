@@ -1,0 +1,32 @@
+{
+  "name": "dong-nai-flood-nv4",
+  "version": "1.0.0",
+  "description": "NV4 - Báo cáo ngập & xác thực (Cảnh báo ngập lụt Đồng Nai)",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "migrate": "node scripts/migrate.js",
+    "seed": "node scripts/seed.js",
+    "seed:clear": "node scripts/seedClear.js",
+    "demo:reset": "node scripts/demo-reset.js",
+    "bench": "node scripts/benchmark.js",
+    "e2e": "node scripts/e2e.js",
+    "verify": "node scripts/verify.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.33.5",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0",
+    "vitest": "^3.0.7"
+  }
+}

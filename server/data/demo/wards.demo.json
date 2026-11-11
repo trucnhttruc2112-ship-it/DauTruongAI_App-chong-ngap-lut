@@ -1,0 +1,21 @@
+{
+  "_note": "DỮ LIỆU GIẢ LẬP – CHỜ NV6",
+  "province": "Đồng Nai",
+  "wards": [
+    { "id": "long-binh", "name": "Phường Long Bình", "district": "Thành phố Biên Hòa", "lat": 10.9447, "lng": 106.8243, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "trang-dai", "name": "Phường Trảng Dài", "district": "Thành phố Biên Hòa", "lat": 10.9712, "lng": 106.8322, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "ho-nai", "name": "Phường Hố Nai", "district": "Thành phố Biên Hòa", "lat": 10.9634, "lng": 106.8645, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "tan-phong", "name": "Phường Tân Phong", "district": "Thành phố Biên Hòa", "lat": 10.9680, "lng": 106.8120, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "quyet-thang", "name": "Phường Quyết Thắng", "district": "Thành phố Biên Hòa", "lat": 10.9480, "lng": 106.8180, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "tam-hiep", "name": "Phường Tam Hiệp", "district": "Thành phố Biên Hòa", "lat": 10.9490, "lng": 106.8350, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "an-binh", "name": "Phường An Bình", "district": "Thành phố Biên Hòa", "lat": 10.9525, "lng": 106.8421, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "phuoc-tan", "name": "Phường Phước Tân", "district": "Thành phố Biên Hòa", "lat": 10.9050, "lng": 106.8850, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "tt-long-thanh", "name": "Thị trấn Long Thành", "district": "Huyện Long Thành", "lat": 10.7830, "lng": 106.9550, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "an-phuoc", "name": "Xã An Phước", "district": "Huyện Long Thành", "lat": 10.8200, "lng": 106.9400, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "loc-an", "name": "Xã Lộc An", "district": "Huyện Long Thành", "lat": 10.8050, "lng": 106.9800, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "tt-trang-bom", "name": "Thị trấn Trảng Bom", "district": "Huyện Trảng Bom", "lat": 10.9550, "lng": 107.0100, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "ho-nai-3", "name": "Xã Hố Nai 3", "district": "Huyện Trảng Bom", "lat": 10.9600, "lng": 106.9300, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "tt-hiep-phuoc", "name": "Thị trấn Hiệp Phước", "district": "Huyện Nhơn Trạch", "lat": 10.7050, "lng": 106.9150, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" },
+    { "id": "phu-hoi", "name": "Xã Phú Hội", "district": "Huyện Nhơn Trạch", "lat": 10.7150, "lng": 106.9050, "_note": "TẠM THỜI – CHỜ RANH GIỚI THẬT TỪ NV6" }
+  ]
+}
