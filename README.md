@@ -1,5 +1,8 @@
 # 🌊 App Cảnh Báo Ngập Lụt Đồng Nai – Đấu Trường AI 2026
 
+> **Chạy bản tích hợp (11/11/2026):** ở thư mục gốc chạy `npm install`, `npm run setup`, rồi `npm run dev` (hoặc `npm run dev:mock` khi chưa có key Gemini) và mở http://localhost:5173. Chi tiết, kịch bản demo và lỗi hay gặp: [docs/HUONG-DAN-CHAY.md](docs/HUONG-DAN-CHAY.md). Trong repo các phần nằm ở `frontend/` (NV2), `server/` (NV4), `backend/` (NV3), `nv5-forecast/` (NV5), `nv1-ban-do/` (NV1), `data/` (NV6).
+
+
 > **Hệ thống hỗ trợ theo dõi điểm ngập, tiếp nhận phản ánh hiện trường từ người dân, phân tích hình ảnh ngập đường bằng AI (Google Gemini), xác thực cộng đồng và dự báo nguy cơ ngập theo lượng mưa tại tỉnh Đồng Nai.**
 
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B%20%7C%2020.9%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)

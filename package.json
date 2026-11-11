@@ -11,7 +11,7 @@
     "dev:server": "cross-env AI_MODE=remote AI_ANALYZE_URL=http://localhost:3001/api/analyze-flood RATE_LIMIT_PER_MINUTE=300 npm --prefix server start",
     "dev:dubao": "cross-env NV5_POINTS_SOURCE=nv4 NV4_API_URL=http://localhost:3000 npm --prefix nv5-forecast start",
     "dev:web": "cross-env VITE_DATA_MODE=live npm --prefix frontend run dev",
-    "reset-data": "npm --prefix server run migrate && npm --prefix server run seed:real",
+    "reset-data": "node scripts/reset-data.js",
     "test": "npm --prefix backend test && npm --prefix server test && npm --prefix nv5-forecast test"
   },
   "devDependencies": {
