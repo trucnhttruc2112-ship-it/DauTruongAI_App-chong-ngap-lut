@@ -462,6 +462,7 @@ Khi chạy bằng `npm run dev`, các biến kết nối (`AI_MODE`, `AI_ANALYZE
 | :---: | :--- | :--- | :--- |
 | `GET` | `/api/health` | Không | Kiểm tra trạng thái cấu hình dịch vụ (`status: "ok"`, `service: "floodlens-nv3"`, `mode`, `gemini.configured`, `analysisReady`). Không gọi Google API. |
 | `POST` | `/api/analyze-flood` | `multipart/form-data` với duy nhất 1 trường file `image` (JPEG/PNG/WebP tĩnh, $\le 5\text{ MiB}$, $\le 25\text{ MP}$) | Phân tích ảnh ngập đường qua Gemini hoặc Mock. Trả về HTTP `200` với 9 trường: `isFlooded` (`boolean\|null`), `status` (`flooded\|not_flooded\|uncertain`), `severity` (`none\|low\|medium\|high\|unknown`), `evidence` (`string[]`), `summary` (`string`), `needsVerification` (`true`), `analyzedAt`, `model`, `mode`. |
+| `POST` | `/api/chat` | JSON `{ message (≤500 ký tự), history[] (≤8), context { points[], forecasts[], forecastError } }` | Chatbot hỏi đáp về ngập, mưa, an toàn và cách dùng app. Trả `{ reply, mode }`. Chạy Gemini nếu có key, mock hoặc Gemini lỗi thì trả lời theo từ khoá (`mode: "mock"`). Giao diện (nút Hỏi đáp, chế độ live) gửi kèm điểm ngập và dự báo đang có. |
 | `GET` | `/test` | Không | Trang giao diện HTML độc lập để chọn ảnh, xem trước và kiểm thử trực tiếp API `/api/analyze-flood`. |
 
 ### 9.2. Dịch vụ Báo cáo ngập & Xác thực – NV4 (Mặc định cổng `3000`)

@@ -5,6 +5,7 @@ import { DataModeBadge } from '../components/ui/Badges.jsx'
 import { APP_NAME, APP_DESCRIPTION } from '../locales/vi/labels.js'
 import { APP_CONFIG } from './config.js'
 import { MapStateProvider } from '../features/map/mapState.jsx'
+import { ChatWidget } from '../features/chat/ChatWidget.jsx'
 import { useOnlineStatus } from '../hooks/useOnlineStatus.jsx'
 
 /** 4 mục chính: Bản đồ · Cảnh báo · Báo cáo · Tùy chọn (mục 3). */
@@ -96,6 +97,7 @@ export function CitizenLayout() {
           <Outlet />
         </main>
         <BottomNav />
+        {APP_CONFIG.dataMode === 'live' ? <ChatWidget /> : null}
       </div>
     </MapStateProvider>
   )

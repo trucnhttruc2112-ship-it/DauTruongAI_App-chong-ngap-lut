@@ -86,7 +86,7 @@ Lần đầu sẽ tải công cụ cloudflared. Chờ hiện dòng `https://....
 npm test
 ```
 
-Chạy test của NV3, NV4 và NV5 (kết quả ngày 11/11: 24 + 208 + 21 test đều qua).
+Chạy test của NV3, NV4 và NV5 (kết quả ngày 11/11: 32 + 208 + 21 test đều qua).
 
 ## Lỗi hay gặp
 

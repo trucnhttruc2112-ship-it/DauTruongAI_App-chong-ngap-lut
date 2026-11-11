@@ -4,9 +4,10 @@ import multer from 'multer';
 import { fileURLToPath } from 'node:url';
 import { readConfig } from './config.js';
 import { createFloodAnalyzer } from './gemini.js';
+import { createFloodChat, readChatBody } from './chat.js';
 import { ApiError, MAX_IMAGE_BYTES, prepareImage, normalizeAnalysis } from './utils.js';
 
-export function createApp({ config = readConfig(), analyzer = createFloodAnalyzer(config), logger = console } = {}) {
+export function createApp({ config = readConfig(), analyzer = createFloodAnalyzer(config), chat = createFloodChat(config), logger = console } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
@@ -66,8 +67,16 @@ export function createApp({ config = readConfig(), analyzer = createFloodAnalyze
     res.json(result);
   });
 
+  app.post('/api/chat', express.json({ limit: '64kb' }), async (req, res) => {
+    const input = readChatBody(req.body);
+    res.json(await chat(input));
+  });
+
   app.use((_req, _res, next) => next(new ApiError(404, 'NOT_FOUND', 'Endpoint không tồn tại.')));
   app.use((error, _req, res, _next) => {
+    if (error?.type === 'entity.parse.failed' || error?.type === 'entity.too.large') {
+      error = new ApiError(400, 'INVALID_BODY', 'Gửi JSON hợp lệ, tối đa 64 KB.');
+    }
     const known = error instanceof ApiError;
     if (!known) logger.error('Lỗi nội bộ khi xử lý yêu cầu NV3.');
     // Never return/log provider messages, image bytes, stack traces or API keys.
