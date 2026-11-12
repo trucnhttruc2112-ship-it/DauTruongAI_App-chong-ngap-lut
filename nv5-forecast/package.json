@@ -1,0 +1,14 @@
+{
+  "name": "nv5-forecast",
+  "version": "0.1.0",
+  "description": "NV5 - Dự báo ngập (demo) dùng Open-Meteo, module độc lập",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "demo": "node src/server.js --demo",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=18" },
+  "license": "UNLICENSED"
+}

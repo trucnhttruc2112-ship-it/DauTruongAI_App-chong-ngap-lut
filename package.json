@@ -1,0 +1,23 @@
+{
+  "name": "app-canh-bao-ngap-dong-nai",
+  "private": true,
+  "description": "Chạy chung NV3 (AI), NV4 (báo cáo), NV5 (dự báo) và NV2 (giao diện) trên một máy",
+  "scripts": {
+    "setup": "npm --prefix backend install && npm --prefix server install && npm --prefix frontend install && npm --prefix server run migrate && npm --prefix server run seed:real",
+    "dev": "concurrently -k -n AI,SERVER,DUBAO,WEB -c magenta,blue,green,yellow \"npm:dev:ai\" \"npm:dev:server\" \"npm:dev:dubao\" \"npm:dev:web\"",
+    "dev:mock": "concurrently -k -n AI,SERVER,DUBAO,WEB -c magenta,blue,green,yellow \"npm:dev:ai-mock\" \"npm:dev:server\" \"npm:dev:dubao\" \"npm:dev:web\"",
+    "dev:ai": "npm --prefix backend start",
+    "dev:ai-mock": "npm --prefix backend run start:mock",
+    "dev:server": "cross-env AI_MODE=remote AI_ANALYZE_URL=http://localhost:3001/api/analyze-flood RATE_LIMIT_PER_MINUTE=300 npm --prefix server start",
+    "dev:dubao": "cross-env NV5_POINTS_SOURCE=nv4 NV4_API_URL=http://localhost:3000 npm --prefix nv5-forecast start",
+    "dev:web": "cross-env VITE_DATA_MODE=live npm --prefix frontend run dev",
+    "reset-data": "node scripts/reset-data.js",
+    "test:anh": "node scripts/test-anh-ai.mjs",
+    "tunnel": "npx --yes cloudflared@0.7.3 tunnel --url http://localhost:5173",
+    "test": "npm --prefix backend test && npm --prefix server test && npm --prefix nv5-forecast test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3"
+  }
+}

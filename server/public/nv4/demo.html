@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NV4 - Thử nghiệm Báo Cáo & Xác Nhận Điểm Ngập</title>
+  <link rel="stylesheet" href="./nv4.css">
+  <style>
+    body {
+      background-color: #f1f5f9;
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+    .demo-section {
+      width: 100%;
+      max-width: 480px;
+    }
+    .demo-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Phần Demo ReportFlow -->
+  <div class="demo-section">
+    <div class="demo-title">1. Thành phần Báo Cáo Ngập (ReportFlow)</div>
+    <div id="report-flow-mount"></div>
+  </div>
+
+  <!-- Phần Demo ConfirmWidget -->
+  <div class="demo-section">
+    <div class="demo-title">2. Thành phần Nút Xác Nhận (ConfirmWidget)</div>
+    <div id="confirm-widget-mount"></div>
+  </div>
+
+  <script type="module">
+    import { ReportFlow } from './reportFlow.js';
+    import { ConfirmWidget } from './confirmWidget.js';
+
+    // 1. Khởi tạo ReportFlow
+    const flow = new ReportFlow({
+      apiBase: '',
+      mount: '#report-flow-mount',
+      onRequestManualPin: async () => {
+        // Mô phỏng NV1/NV2 cung cấp giao diện ghim điểm trên bản đồ
+        const confirmed = confirm('Mô phỏng: Chọn ghim tại vòng xoay Biên Hùng (10.9515, 106.8245)?');
+        if (confirmed) {
+          return { lat: 10.9515, lng: 106.8245 };
+        }
+        throw new Error('Người dùng đã hủy ghim vị trí.');
+      },
+      onSuccess: (data) => {
+        console.log('✅ Báo cáo gửi thành công:', data);
+        // Tự động gắn ConfirmWidget cho điểm ngập vừa tạo/gộp nếu có
+        if (data && data.floodPoint) {
+          initConfirm(data.floodPoint.id, data.floodPoint.confirmStill, data.floodPoint.confirmEnded);
+        }
+      },
+      onError: (err) => {
+        console.error('❌ Lỗi gửi báo cáo:', err);
+      }
+    });
+
+    // 2. Khởi tạo ConfirmWidget mẫu
+    function initConfirm(pointId = 'fp_demo_bienhoa', still = 1, ended = 0) {
+      new ConfirmWidget({
+        apiBase: '',
+        floodPointId: pointId,
+        initialStill: still,
+        initialEnded: ended,
+        mount: '#confirm-widget-mount',
+        onConfirmed: (res) => {
+          console.log('✅ Đã xác nhận thành công:', res);
+        }
+      });
+    }
+
+    // Khởi tạo trước một widget xác nhận mẫu
+    initConfirm('fp_seed_01', 3, 1);
+  </script>
+</body>
+</html>

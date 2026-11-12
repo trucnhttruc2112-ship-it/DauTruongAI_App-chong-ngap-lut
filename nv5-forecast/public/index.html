@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NV5 - Dự báo ngập (demo)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>NV5 · Dự báo ngập Đồng Nai</h1>
+    <p class="warn">Mô hình DEMO – không phải dự báo thủy văn chính thức.</p>
+  </header>
+
+  <section class="card">
+    <h2>Tọa độ thử nghiệm</h2>
+    <p class="demo-note">Tọa độ nhập tay chỉ để thử nghiệm, <b>không phải dữ liệu địa điểm đã xác minh</b>.</p>
+    <form id="f">
+      <label>Vĩ độ <input id="lat" type="number" step="any" value="10.9447" required /></label>
+      <label>Kinh độ <input id="lng" type="number" step="any" value="106.8243" required /></label>
+      <label>Số lần ngập (giả định) <input id="solan" type="number" min="1" value="1" /></label>
+      <label>Nguồn mưa
+        <select id="scenario">
+          <option value="">Open-Meteo (thực tế)</option>
+          <option value="trung_binh" disabled>DEMO - dữ liệu mô phỏng: Trung bình (20mm/3h)</option>
+          <option value="cao" disabled>DEMO - dữ liệu mô phỏng: Cao (36mm/3h)</option>
+          <option value="rat_cao" disabled>DEMO - dữ liệu mô phỏng: Rất cao (60mm/3h, 3 lần ngập)</option>
+        </select>
+      </label>
+      <button type="submit">Xem dự báo</button>
+      <button type="button" id="sim">Mô phỏng cảnh báo 19:00</button>
+    </form>
+  </section>
+
+  <section class="card" id="alerts"><h2>Thông báo ngày mai</h2><p>Chưa kiểm tra.</p></section>
+  <section class="card" id="points"><h2>Nguy cơ theo điểm</h2></section>
+  <section class="card"><h2>Mưa theo giờ</h2><div id="hourly" class="scroll"></div></section>
+
+  <script src="app.js"></script>
+</body>
+</html>

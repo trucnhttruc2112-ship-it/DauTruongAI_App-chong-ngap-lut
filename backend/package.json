@@ -1,0 +1,26 @@
+{
+  "name": "floodlens-nv3-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "NV3 - API phân tích ảnh ngập đường cho FloodLens",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "start:mock": "node scripts/start-mock.js",
+    "check": "node scripts/check.js",
+    "test": "node --test",
+    "test:live": "node scripts/live-smoke.js"
+  },
+  "dependencies": {
+    "@google/genai": "2.32.0",
+    "cors": "2.8.6",
+    "dotenv": "18.0.10",
+    "express": "5.3.0",
+    "multer": "2.5.0",
+    "sharp": "0.35.5"
+  }
+}
